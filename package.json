@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/hironobu-igawa/jquery-scope-watch#readme",
   "devDependencies": {
-    "bower": "^1.7.1"
+    "bower": "^1.7.1",
+    "tsd": "^0.6.5"
   }
 }
