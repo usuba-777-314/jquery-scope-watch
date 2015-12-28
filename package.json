@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/hironobu-igawa/jquery-scope-watch/issues"
   },
-  "homepage": "https://github.com/hironobu-igawa/jquery-scope-watch#readme"
+  "homepage": "https://github.com/hironobu-igawa/jquery-scope-watch#readme",
+  "devDependencies": {
+    "bower": "^1.7.1"
+  }
 }
