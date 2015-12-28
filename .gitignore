@@ -2,6 +2,6 @@
 /.idea/
 /bower_components/
 /node_modules/
-/src\tsd.d.ts
+/src/tsd.d.ts
 /typings/
 /npm-debug.log
