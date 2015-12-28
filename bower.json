@@ -15,5 +15,8 @@
     "gulpfile.js",
     "package.json",
     "tsd.json"
-  ]
+  ],
+  "dependencies": {
+    "jquery": "~2.1.4"
+  }
 }
