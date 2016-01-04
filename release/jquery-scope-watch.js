@@ -1,3 +1,8 @@
+/*!
+ * jquery-scope-watch v0.0.0 - Watch the value, and to applied.
+ * Copyright 2015 hironobu-igawa
+ * license MIT
+ */
 /**
  * Namespace of the jquery-scope-watch.
  * @namespace
