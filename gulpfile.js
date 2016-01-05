@@ -3,6 +3,7 @@ var typescript = require('gulp-typescript');
 var header = require('gulp-header');
 var uglify = require('gulp-uglify');
 var rename = require('gulp-rename');
+var webserver = require('gulp-webserver');
 
 var pkg = require('./package.json');
 
@@ -13,7 +14,7 @@ var banner = ['/*!',
     ' */',
     ''].join('\n');
 
-gulp.task('default', ['watch']);
+gulp.task('default', ['test']);
 
 gulp.task('watch', ['scripts'], function() {
 
@@ -34,4 +35,13 @@ gulp.task('scripts', function() {
     }))
     .pipe(rename('jquery-scope-watch.min.js'))
     .pipe(gulp.dest('release'));
+});
+
+gulp.task('test', ['watch'], function() {
+
+  gulp.src('./')
+    .pipe(webserver({
+      port: 3000,
+      open: 'http://localhost:3000/test'
+    }));
 });
