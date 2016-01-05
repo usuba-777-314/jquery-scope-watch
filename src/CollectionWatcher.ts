@@ -34,7 +34,6 @@ module scope {
     constructor(private valueGetter: () => any,
                 private apply: (newValue: any, oldValue: any) => void) {
 
-      this.newValue = this.oldValue = CollectionWatcher.copy(this.valueGetter());
     }
 
     /**
@@ -86,9 +85,11 @@ module scope {
      */
     private isChange(): boolean {
 
-      if (!(this.newValue != null && typeof this.newValue === 'object')) {
+      if (this.newValue == null || this.oldValue == null)
+        return this.newValue != this.oldValue;
+
+      if (typeof this.newValue !== 'object' || typeof this.oldValue !== 'object')
         return this.newValue !== this.oldValue;
-      }
 
       return Object.keys(this.newValue).concat(Object.keys(this.oldValue))
         .some((k: string) => this.newValue[k] !== this.oldValue[k]);

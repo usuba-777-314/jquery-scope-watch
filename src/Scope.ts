@@ -209,6 +209,23 @@ module scope {
     }
 
     /**
+     *
+     * @method scope.Scope#repeat
+     * @param {any} expression
+     * @param {string} valueKey
+     * @param {(s: Scope) => JQuery} rowGenerator
+     * @param {string} primaryKey
+     * @returns {JQuery}
+     */
+    repeat(expression: any,
+           valueKey: string,
+           rowGenerator: (s: Scope) => JQuery,
+           primaryKey: string): JQuery {
+
+      return Repeater.generate(this, expression, valueKey, rowGenerator, primaryKey);
+    }
+
+    /**
      * Parse a expression.
      * @method scope.Scope#parse
      * @private

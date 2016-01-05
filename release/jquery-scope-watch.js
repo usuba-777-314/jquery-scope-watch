@@ -22,7 +22,6 @@ var scope;
         function CollectionWatcher(valueGetter, apply) {
             this.valueGetter = valueGetter;
             this.apply = apply;
-            this.newValue = this.oldValue = CollectionWatcher.copy(this.valueGetter());
         }
         /**
          * Shallow copy a value.
@@ -67,9 +66,10 @@ var scope;
          */
         CollectionWatcher.prototype.isChange = function () {
             var _this = this;
-            if (!(this.newValue != null && typeof this.newValue === 'object')) {
+            if (this.newValue == null || this.oldValue == null)
+                return this.newValue != this.oldValue;
+            if (typeof this.newValue !== 'object' || typeof this.oldValue !== 'object')
                 return this.newValue !== this.oldValue;
-            }
             return Object.keys(this.newValue).concat(Object.keys(this.oldValue))
                 .some(function (k) { return _this.newValue[k] !== _this.oldValue[k]; });
         };
@@ -253,6 +253,18 @@ var scope;
                 Scope._root = undefined;
         };
         /**
+         *
+         * @method scope.Scope#repeat
+         * @param {any} expression
+         * @param {string} valueKey
+         * @param {(s: Scope) => JQuery} rowGenerator
+         * @param {string} primaryKey
+         * @returns {JQuery}
+         */
+        Scope.prototype.repeat = function (expression, valueKey, rowGenerator, primaryKey) {
+            return scope_1.Repeater.generate(this, expression, valueKey, rowGenerator, primaryKey);
+        };
+        /**
          * Parse a expression.
          * @method scope.Scope#parse
          * @private
@@ -294,9 +306,144 @@ var scope;
     scope_1.Scope = Scope;
 })(scope || (scope = {}));
 /// <reference path="Scope.ts" />
+/**
+ * Namespace of the jquery-scope-watch.
+ * @namespace
+ */
 var scope;
 (function (scope) {
     $.scope = scope.Scope;
+})(scope || (scope = {}));
+/**
+ * Namespace of the jquery-scope-watch.
+ * @namespace
+ */
+var scope;
+(function (scope_2) {
+    /**
+     *
+     * @class scope.Repeater
+     */
+    var Repeater = (function () {
+        /**
+         * @constructor
+         * @param {scope.Scope} scope
+         * @param {any} expression
+         * @param {string} valueKey
+         * @param {(s: Scope) => JQuery} rowGenerator
+         * @param {string} primaryKey
+         */
+        function Repeater(scope, expression, valueKey, rowGenerator, primaryKey) {
+            this.scope = scope;
+            this.expression = expression;
+            this.valueKey = valueKey;
+            this.rowGenerator = rowGenerator;
+            this.primaryKey = primaryKey;
+            /**
+             * @member scope.Repeater#keys
+             * @type {any[]}
+             */
+            this.keys = [];
+            /**
+             * @member scope.Repeater#rowMap
+             * @type {IRowMap}
+             */
+            this.rowMap = {};
+            this.startComment = document.createComment('start repeater');
+            this.endComment = document.createComment('end repeater');
+            scope.watchCollection(expression, this.render.bind(this));
+        }
+        /**
+         *
+         * @method scope.Repeater.generate
+         * @static
+         * @param {scope.Scope} scope
+         * @param {any} expression
+         * @param {string} valueKey
+         * @param {(s: Scope) => JQuery} rowGenerator
+         * @param {string} primaryKey
+         * @returns {JQuery}
+         */
+        Repeater.generate = function (scope, expression, valueKey, rowGenerator, primaryKey) {
+            var repeater = new Repeater(scope, expression, valueKey, rowGenerator, primaryKey);
+            return $([repeater.startComment, repeater.endComment]);
+        };
+        /**
+         *
+         * @method scope.Repeater#render
+         * @private
+         * @param {{}} src
+         */
+        Repeater.prototype.render = function (src) {
+            var _this = this;
+            var col = this.getCollection(src);
+            col.forEach(function (data, index) {
+                var row = _this.rowMap[data.key] =
+                    _this.rowMap[data.key] || _this.generateRow(data.value);
+                row.scope[_this.valueKey] = data.value;
+                if (data.key === _this.keys[index])
+                    return;
+                var $prevRow = index ? _this.rowMap[_this.keys[index - 1]].elem : $(_this.startComment);
+                $prevRow.after(row.elem);
+                var oldIndex = _this.keys.indexOf(data.key);
+                if (oldIndex > -1)
+                    _this.keys.splice(oldIndex, 1);
+                _this.keys.splice(index, 0, data.key);
+            });
+            for (var i = col.length; i < this.keys.length; i++)
+                this.destroyRow(this.keys[i]);
+            this.keys.length = col.length;
+        };
+        /**
+         *
+         * @method scope.Repeater#destroyRow
+         * @private
+         * @param {any} key
+         */
+        Repeater.prototype.destroyRow = function (key) {
+            var row = this.rowMap[key];
+            if (!row)
+                return;
+            row.scope.destroy();
+            row.elem.remove();
+            delete this.rowMap[key];
+        };
+        /**
+         *
+         * @method scope.Repeater#generateRow
+         * @private
+         * @returns {IRow}
+         */
+        Repeater.prototype.generateRow = function (value) {
+            var scope = this.scope.generate();
+            scope[this.valueKey] = value;
+            var $elem = this.rowGenerator(scope);
+            return {
+                elem: $elem,
+                scope: scope
+            };
+        };
+        /**
+         *
+         * @method scope.Repeater#getCollection
+         * @private
+         * @param {{}} src
+         * @returns {IData[]}
+         */
+        Repeater.prototype.getCollection = function (src) {
+            var _this = this;
+            return Object.keys(src)
+                .filter(function (k) { return src.hasOwnProperty(k); })
+                .map(function (key) {
+                return {
+                    key: _this.primaryKey ? src[key][_this.primaryKey] : key,
+                    value: src[key]
+                };
+            });
+        };
+        return Repeater;
+    })();
+    scope_2.Repeater = Repeater;
 })(scope || (scope = {}));
 /**
  * Namespace of the jquery-scope-watch.
@@ -317,7 +464,6 @@ var scope;
         function Watcher(valueGetter, apply) {
             this.valueGetter = valueGetter;
             this.apply = apply;
-            this.newValue = this.oldValue = this.valueGetter();
         }
         /**
          * If the value has been changed, it apply.
