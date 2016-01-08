@@ -58,8 +58,9 @@ module scope {
      */
     static generate(): Scope {
 
-      return this.root.generate();
+      return Scope.root.generate();
     }
+
     /**
      * Registers a apply callback to be executed the value changes.
      * @method scope.Scope.watch
@@ -71,7 +72,7 @@ module scope {
     static watch(expression: any,
                  apply: (newValue: any, oldValue: any) => void): Function {
 
-      return this.root.watch(expression, apply);
+      return Scope.root.watch(expression, apply);
     }
 
     /**
@@ -86,7 +87,7 @@ module scope {
     static watchCollection(expression: any,
                            apply: (newValue: any, oldValue: any) => void): Function {
 
-      return this.root.watchCollection(expression, apply);
+      return Scope.root.watchCollection(expression, apply);
     }
 
     /**
@@ -96,7 +97,7 @@ module scope {
      */
     static apply() {
 
-      this.root.apply();
+      Scope.root.apply();
     }
 
     /**
@@ -106,7 +107,7 @@ module scope {
      */
     static destroy() {
 
-      this.root.destroy();
+      Scope.root.destroy();
     }
 
     /**
@@ -119,6 +120,10 @@ module scope {
       var scope = <Scope>Object.create(this);
 
       scope.parent = this;
+      scope.children = [];
+      scope.watchers = [];
+      scope.destroyed = false;
+
       this.children.push(scope);
 
       return scope;
@@ -137,7 +142,7 @@ module scope {
       var valueGetter: () => any;
       switch (typeof expression) {
         case 'string': valueGetter = () => this.parse(<string>expression); break;
-        case 'Function': valueGetter = <() => any>expression; break;
+        case 'function': valueGetter = <() => any>expression; break;
         default: valueGetter = () => expression;
       }
 
@@ -164,7 +169,7 @@ module scope {
       var valueGetter: () => any;
       switch (typeof expression) {
         case 'string': valueGetter = () => this.parse(<string>expression); break;
-        case 'Function': valueGetter = <() => any>expression; break;
+        case 'function': valueGetter = <() => any>expression; break;
         default: valueGetter = () => expression;
       }
 
@@ -183,6 +188,7 @@ module scope {
      */
     apply() {
 
+      if (this.destroyed) return;
       this.watchers.forEach((w: IWatcher) => w.call());
       this.children.forEach((s: Scope) => s.apply());
     }

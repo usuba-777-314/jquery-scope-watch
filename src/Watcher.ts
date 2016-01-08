@@ -45,6 +45,7 @@ module scope {
       this.oldValue = this.newValue;
       this.newValue = this.valueGetter();
 
+      if (!this.apply) return;
       if (!this.isChange()) return;
 
       this.apply(this.newValue, this.oldValue);

@@ -153,15 +153,17 @@ module scope {
      */
     private getCollection(src: {}): IData[] {
 
-      return Object.keys(src)
-        .filter((k: any) => src.hasOwnProperty(k))
-        .map((key: any) => {
+      var keys = src instanceof Array
+        ? (<any[]>src).map((v: any, i: number) => i)
+        : Object.keys(src).filter((k: any) => src.hasOwnProperty(k));
 
-          return {
-            key: this.primaryKey ? src[key][this.primaryKey] : key,
-            value: src[key]
-          }
-        });
+      return (<any[]>keys).map((key: any) => {
+
+        return {
+          key: this.primaryKey ? src[key][this.primaryKey] : key,
+          value: src[key]
+        }
+      });
     }
   }
 

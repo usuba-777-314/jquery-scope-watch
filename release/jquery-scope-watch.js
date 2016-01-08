@@ -124,7 +124,7 @@ var scope;
          * @returns {scope.Scope}
          */
         Scope.generate = function () {
-            return this.root.generate();
+            return Scope.root.generate();
         };
         /**
          * Registers a apply callback to be executed the value changes.
@@ -135,7 +135,7 @@ var scope;
          * @returns {Function} A deregistration function for this apply.
          */
         Scope.watch = function (expression, apply) {
-            return this.root.watch(expression, apply);
+            return Scope.root.watch(expression, apply);
         };
         /**
          * Registers a apply callback to be executed the value changes.
@@ -147,7 +147,7 @@ var scope;
          * @returns {Function} A deregistration function for this apply.
          */
         Scope.watchCollection = function (expression, apply) {
-            return this.root.watchCollection(expression, apply);
+            return Scope.root.watchCollection(expression, apply);
         };
         /**
          * If the values has been changed, it apply.
@@ -155,7 +155,7 @@ var scope;
          * @static
          */
         Scope.apply = function () {
-            this.root.apply();
+            Scope.root.apply();
         };
         /**
          * Remove all scopes.
@@ -163,7 +163,7 @@ var scope;
          * @static
          */
         Scope.destroy = function () {
-            this.root.destroy();
+            Scope.root.destroy();
         };
         /**
          * Generate a new child scope.
@@ -173,6 +173,9 @@ var scope;
         Scope.prototype.generate = function () {
             var scope = Object.create(this);
             scope.parent = this;
+            scope.children = [];
+            scope.watchers = [];
+            scope.destroyed = false;
             this.children.push(scope);
             return scope;
         };
@@ -190,7 +193,7 @@ var scope;
                 case 'string':
                     valueGetter = function () { return _this.parse(expression); };
                     break;
-                case 'Function':
+                case 'function':
                     valueGetter = expression;
                     break;
                 default: valueGetter = function () { return expression; };
@@ -216,7 +219,7 @@ var scope;
                 case 'string':
                     valueGetter = function () { return _this.parse(expression); };
                     break;
-                case 'Function':
+                case 'function':
                     valueGetter = expression;
                     break;
                 default: valueGetter = function () { return expression; };
@@ -232,6 +235,8 @@ var scope;
          * @method scope.Scope#apply
          */
         Scope.prototype.apply = function () {
+            if (this.destroyed)
+                return;
             this.watchers.forEach(function (w) { return w.call(); });
             this.children.forEach(function (s) { return s.apply(); });
         };
@@ -432,9 +437,10 @@ var scope;
          */
         Repeater.prototype.getCollection = function (src) {
             var _this = this;
-            return Object.keys(src)
-                .filter(function (k) { return src.hasOwnProperty(k); })
-                .map(function (key) {
+            var keys = src instanceof Array
+                ? src.map(function (v, i) { return i; })
+                : Object.keys(src).filter(function (k) { return src.hasOwnProperty(k); });
+            return keys.map(function (key) {
                 return {
                     key: _this.primaryKey ? src[key][_this.primaryKey] : key,
                     value: src[key]
@@ -472,6 +478,8 @@ var scope;
         Watcher.prototype.call = function () {
             this.oldValue = this.newValue;
             this.newValue = this.valueGetter();
+            if (!this.apply)
+                return;
             if (!this.isChange())
                 return;
             this.apply(this.newValue, this.oldValue);
