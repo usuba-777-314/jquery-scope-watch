@@ -52,7 +52,7 @@ module scope {
 
       if (Array.isArray(value)) {
         var array = <any[]>[];
-        (<any[]>value).forEach((v: any, i: number) => array[i] = v);
+        for (var k in value) if (value.hasOwnProperty(k)) array[k] = value[k];
         return array;
       }
 
