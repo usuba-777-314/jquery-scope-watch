@@ -153,9 +153,9 @@ module scope {
      */
     private getCollection(src: {}): IData[] {
 
-      var keys = src instanceof Array
-        ? (<any[]>src).map((v: any, i: number) => i)
-        : Object.keys(src).filter((k: any) => src.hasOwnProperty(k));
+      var keys = src instanceof Array ? (<any[]>src).map((v: any, i: number) => i)
+        : src ? Object.keys(src).filter((k: any) => src.hasOwnProperty(k))
+        : [];
 
       return (<any[]>keys).map((key: any) => {
 

@@ -439,9 +439,9 @@ var scope;
          */
         Repeater.prototype.getCollection = function (src) {
             var _this = this;
-            var keys = src instanceof Array
-                ? src.map(function (v, i) { return i; })
-                : Object.keys(src).filter(function (k) { return src.hasOwnProperty(k); });
+            var keys = src instanceof Array ? src.map(function (v, i) { return i; })
+                : src ? Object.keys(src).filter(function (k) { return src.hasOwnProperty(k); })
+                    : [];
             return keys.map(function (key) {
                 return {
                     key: _this.primaryKey ? src[key][_this.primaryKey] : key,
