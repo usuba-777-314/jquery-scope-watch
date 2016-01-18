@@ -42,6 +42,14 @@ module scope {
     private watchers: any[] = [];
 
     /**
+     * Reference to listeners.
+     * @member scope.Scope#listeners
+     * @private
+     * @type {{}}
+     */
+    private listeners: {} = {};
+
+    /**
      * "true" after destroy method is called.
      * "false" before that.
      * @member scope.Scope#destroyed
@@ -98,6 +106,45 @@ module scope {
     static apply() {
 
       Scope.root.apply();
+    }
+
+    /**
+     * Listens on events of a given type.
+     * @method scope.Scope#on
+     * @static
+     * @param {string} name
+     * @param {(args: *, argsN: *) => void} listener
+     * @returns {Function} A deregistration function for this apply.
+     */
+    static on(name: string, listener: (...args: any[]) => void): Function {
+
+      return Scope.root.on(name, listener);
+    }
+
+    /**
+     * Notice an event 'name' to children scopes.
+     * @method scope.Scope#broadcast
+     * @param {string} name
+     * @param {*} srcArgs, srcArgsN
+     */
+    static broadcast(name: string, ...srcArgs: any[]) {
+
+      var args = [name];
+      srcArgs.forEach((a: any) => args.push(a));
+      Scope.root.broadcast.apply(Scope.root, srcArgs);
+    }
+
+    /**
+     * Notice an event 'name' to parent scopes.
+     * @method scope.Scope#emit
+     * @param {string} name
+     * @param {*} srcArgs, srcArgsN
+     */
+    static emit(name: string, ...srcArgs: any[]) {
+
+      var args = [name];
+      srcArgs.forEach((a: any) => args.push(a));
+      Scope.root.emit.apply(Scope.root, srcArgs);
     }
 
     /**
@@ -194,6 +241,52 @@ module scope {
     }
 
     /**
+     * Listens on events of a given type.
+     * @method scope.Scope#on
+     * @param {string} name
+     * @param {(args: *, argsN: *) => void} listener
+     * @returns {Function} A deregistration function for this apply.
+     */
+    on(name: string, listener: (...args: any[]) => void): Function {
+
+      if (!this.listeners[name]) this.listeners[name] = [];
+      this.listeners[name].push(listener);
+
+      return () => {
+
+        var index = this.listeners[name].indexOf(listener);
+        if (index === -1) return;
+        this.listeners[name].splice(this.listeners[name].indexOf(listener), 1);
+      };
+    }
+
+    /**
+     * Notice an event 'name' to children scopes.
+     * @method scope.Scope#broadcast
+     * @param {string} name
+     * @param {*} args, argsN
+     */
+    broadcast(name: string, ...args: any[]) {
+
+      if (this.destroyed) return;
+      this.listeners[name].forEach((l: Function) => l.apply(null, args));
+      this.children.forEach((s: Scope) => s.broadcast(name, args));
+    }
+
+    /**
+     * Notice an event 'name' to parent scopes.
+     * @method scope.Scope#emit
+     * @param {string} name
+     * @param {*} args, argsN
+     */
+    emit(name: string, ...args: any[]) {
+
+      if (this.destroyed) return;
+      this.listeners[name].forEach((l: Function) => l.apply(null, args));
+      this.parent.emit(name, args);
+    }
+
+    /**
      * Remove the current scope (and all of its children) from parent scope.
      * @method scope.Scope#destory
      */
@@ -203,6 +296,8 @@ module scope {
       this.destroyed = true;
 
       $.extend([], this.children).forEach((scope: Scope) => scope.destroy());
+
+      this.broadcast('destroy');
 
       if (this.parent) // If is not the root scope.
         this.parent.children.splice(this.parent.children.indexOf(this), 1);

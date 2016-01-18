@@ -111,6 +111,13 @@ var scope;
              */
             this.watchers = [];
             /**
+             * Reference to listeners.
+             * @member scope.Scope#listeners
+             * @private
+             * @type {{}}
+             */
+            this.listeners = {};
+            /**
              * "true" after destroy method is called.
              * "false" before that.
              * @member scope.Scope#destroyed
@@ -158,6 +165,47 @@ var scope;
          */
         Scope.apply = function () {
             Scope.root.apply();
+        };
+        /**
+         * Listens on events of a given type.
+         * @method scope.Scope#on
+         * @static
+         * @param {string} name
+         * @param {(args: *, argsN: *) => void} listener
+         * @returns {Function} A deregistration function for this apply.
+         */
+        Scope.on = function (name, listener) {
+            return Scope.root.on(name, listener);
+        };
+        /**
+         * Notice an event 'name' to children scopes.
+         * @method scope.Scope#broadcast
+         * @param {string} name
+         * @param {*} srcArgs, srcArgsN
+         */
+        Scope.broadcast = function (name) {
+            var srcArgs = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                srcArgs[_i - 1] = arguments[_i];
+            }
+            var args = [name];
+            srcArgs.forEach(function (a) { return args.push(a); });
+            Scope.root.broadcast.apply(Scope.root, srcArgs);
+        };
+        /**
+         * Notice an event 'name' to parent scopes.
+         * @method scope.Scope#emit
+         * @param {string} name
+         * @param {*} srcArgs, srcArgsN
+         */
+        Scope.emit = function (name) {
+            var srcArgs = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                srcArgs[_i - 1] = arguments[_i];
+            }
+            var args = [name];
+            srcArgs.forEach(function (a) { return args.push(a); });
+            Scope.root.emit.apply(Scope.root, srcArgs);
         };
         /**
          * Remove all scopes.
@@ -243,6 +291,57 @@ var scope;
             this.children.forEach(function (s) { return s.apply(); });
         };
         /**
+         * Listens on events of a given type.
+         * @method scope.Scope#on
+         * @param {string} name
+         * @param {(args: *, argsN: *) => void} listener
+         * @returns {Function} A deregistration function for this apply.
+         */
+        Scope.prototype.on = function (name, listener) {
+            var _this = this;
+            if (!this.listeners[name])
+                this.listeners[name] = [];
+            this.listeners[name].push(listener);
+            return function () {
+                var index = _this.listeners[name].indexOf(listener);
+                if (index === -1)
+                    return;
+                _this.listeners[name].splice(_this.listeners[name].indexOf(listener), 1);
+            };
+        };
+        /**
+         * Notice an event 'name' to children scopes.
+         * @method scope.Scope#broadcast
+         * @param {string} name
+         * @param {*} args, argsN
+         */
+        Scope.prototype.broadcast = function (name) {
+            var args = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                args[_i - 1] = arguments[_i];
+            }
+            if (this.destroyed)
+                return;
+            this.listeners[name].forEach(function (l) { return l.apply(null, args); });
+            this.children.forEach(function (s) { return s.broadcast(name, args); });
+        };
+        /**
+         * Notice an event 'name' to parent scopes.
+         * @method scope.Scope#emit
+         * @param {string} name
+         * @param {*} args, argsN
+         */
+        Scope.prototype.emit = function (name) {
+            var args = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                args[_i - 1] = arguments[_i];
+            }
+            if (this.destroyed)
+                return;
+            this.listeners[name].forEach(function (l) { return l.apply(null, args); });
+            this.parent.emit(name, args);
+        };
+        /**
          * Remove the current scope (and all of its children) from parent scope.
          * @method scope.Scope#destory
          */
@@ -251,6 +350,7 @@ var scope;
                 return;
             this.destroyed = true;
             $.extend([], this.children).forEach(function (scope) { return scope.destroy(); });
+            this.broadcast('destroy');
             if (this.parent)
                 this.parent.children.splice(this.parent.children.indexOf(this), 1);
             this.parent = null;
@@ -335,12 +435,13 @@ var scope;
         /**
          * @constructor
          * @param {scope.Scope} scope
-         * @param {any} expression
+         * @param {*} expression
          * @param {string} valueKey
          * @param {(s: Scope) => JQuery} rowGenerator
          * @param {string} primaryKey
          */
         function Repeater(scope, expression, valueKey, rowGenerator, primaryKey) {
+            var _this = this;
             this.scope = scope;
             this.expression = expression;
             this.valueKey = valueKey;
@@ -358,6 +459,11 @@ var scope;
             this.rowMap = {};
             this.startComment = document.createComment('start repeater');
             this.endComment = document.createComment('end repeater');
+            scope.on('destroy', function () { return $.each(_this.rowMap, function (k, r) {
+                if (r.scope)
+                    r.scope.destroy();
+                r.elem.remove();
+            }); });
             scope.watchCollection(expression, this.render.bind(this));
         }
         /**
