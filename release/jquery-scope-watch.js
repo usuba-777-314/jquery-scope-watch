@@ -225,6 +225,7 @@ var scope;
             scope.parent = this;
             scope.children = [];
             scope.watchers = [];
+            scope.listeners = [];
             scope.destroyed = false;
             this.children.push(scope);
             return scope;
@@ -322,7 +323,8 @@ var scope;
             }
             if (this.destroyed)
                 return;
-            this.listeners[name].forEach(function (l) { return l.apply(null, args); });
+            if (this.listeners[name])
+                this.listeners[name].forEach(function (l) { return l.apply(null, args); });
             this.children.forEach(function (s) { return s.broadcast(name, args); });
         };
         /**
@@ -338,7 +340,8 @@ var scope;
             }
             if (this.destroyed)
                 return;
-            this.listeners[name].forEach(function (l) { return l.apply(null, args); });
+            if (this.listeners[name])
+                this.listeners[name].forEach(function (l) { return l.apply(null, args); });
             this.parent.emit(name, args);
         };
         /**
@@ -348,14 +351,18 @@ var scope;
         Scope.prototype.destroy = function () {
             if (this.destroyed)
                 return;
-            this.destroyed = true;
-            $.extend([], this.children).forEach(function (scope) { return scope.destroy(); });
+            var destroy = function (scope) {
+                $.extend([], this.children).forEach(function (s) { return destroy(s); });
+                scope.destroyed = true;
+                if (scope.parent)
+                    scope.parent.children.splice(scope.parent.children.indexOf(scope), 1);
+                scope.parent = null;
+                scope.children = null;
+                scope.watchers = null;
+                scope.listeners = null;
+            };
             this.broadcast('destroy');
-            if (this.parent)
-                this.parent.children.splice(this.parent.children.indexOf(this), 1);
-            this.parent = null;
-            this.children = null;
-            this.watchers = null;
+            destroy(this);
             if (this === Scope.root)
                 Scope._root = undefined;
         };
@@ -459,11 +466,7 @@ var scope;
             this.rowMap = {};
             this.startComment = document.createComment('start repeater');
             this.endComment = document.createComment('end repeater');
-            scope.on('destroy', function () { return $.each(_this.rowMap, function (k, r) {
-                if (r.scope)
-                    r.scope.destroy();
-                r.elem.remove();
-            }); });
+            scope.on('destroy', function () { return $.each(_this.rowMap, function (k, r) { return r.elem.remove(); }); });
             scope.watchCollection(expression, this.render.bind(this));
         }
         /**

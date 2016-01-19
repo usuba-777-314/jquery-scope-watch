@@ -55,11 +55,7 @@ module scope {
       this.startComment = document.createComment('start repeater');
       this.endComment = document.createComment('end repeater');
 
-      scope.on('destroy', () => $.each(this.rowMap, (k: number, r: IRow) => {
-
-        if (r.scope) r.scope.destroy();
-        r.elem.remove();
-      }));
+      scope.on('destroy', () => $.each(this.rowMap, (k: number, r: IRow) => r.elem.remove()));
 
       scope.watchCollection(expression, this.render.bind(this));
     }

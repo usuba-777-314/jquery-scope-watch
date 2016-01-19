@@ -169,6 +169,7 @@ module scope {
       scope.parent = this;
       scope.children = [];
       scope.watchers = [];
+      scope.listeners = [];
       scope.destroyed = false;
 
       this.children.push(scope);
@@ -269,7 +270,8 @@ module scope {
     broadcast(name: string, ...args: any[]) {
 
       if (this.destroyed) return;
-      this.listeners[name].forEach((l: Function) => l.apply(null, args));
+      if (this.listeners[name])
+        this.listeners[name].forEach((l: Function) => l.apply(null, args));
       this.children.forEach((s: Scope) => s.broadcast(name, args));
     }
 
@@ -282,7 +284,8 @@ module scope {
     emit(name: string, ...args: any[]) {
 
       if (this.destroyed) return;
-      this.listeners[name].forEach((l: Function) => l.apply(null, args));
+      if (this.listeners[name])
+        this.listeners[name].forEach((l: Function) => l.apply(null, args));
       this.parent.emit(name, args);
     }
 
@@ -293,19 +296,24 @@ module scope {
     destroy() {
 
       if (this.destroyed) return;
-      this.destroyed = true;
 
-      $.extend([], this.children).forEach((scope: Scope) => scope.destroy());
+      var destroy = function(scope) {
+
+        $.extend([], this.children).forEach((s: Scope) => destroy(s));
+
+        scope.destroyed = true;
+
+        if (scope.parent) // If is not the root scope.
+          scope.parent.children.splice(scope.parent.children.indexOf(scope), 1);
+
+        scope.parent = null;
+        scope.children = null;
+        scope.watchers = null;
+        scope.listeners = null;
+      };
 
       this.broadcast('destroy');
-
-      if (this.parent) // If is not the root scope.
-        this.parent.children.splice(this.parent.children.indexOf(this), 1);
-
-      this.parent = null;
-      this.children = null;
-      this.watchers = null;
-
+      destroy(this);
       if (this === Scope.root) Scope._root = undefined;
     }
 
