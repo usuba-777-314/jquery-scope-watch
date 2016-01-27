@@ -9,7 +9,6 @@ module scope {
    * @class scope.Repeater
    */
   export class Repeater {
-
     /**
      *
      * @member scope.Repeater#startComment
@@ -28,15 +27,17 @@ module scope {
 
     /**
      * @member scope.Repeater#keys
-     * @type {any[]}
+     * @private
+     * @type {*[]}
      */
     private keys: any[] = [];
 
     /**
      * @member scope.Repeater#rowMap
-     * @type {IRowMap}
+     * @private
+     * @type {RowMap}
      */
-    private rowMap: IRowMap = {};
+    private rowMap: RowMap = new RowMap();
 
     /**
      * @constructor
@@ -55,7 +56,7 @@ module scope {
       this.startComment = document.createComment('start repeater');
       this.endComment = document.createComment('end repeater');
 
-      scope.on('destroy', () => $.each(this.rowMap, (k: number, r: IRow) => r.elem.remove()));
+      scope.on('destroy', () => this.rowMap.values.forEach((r: IRow) => r.elem.remove()));
 
       scope.watchCollection(expression, this.render.bind(this));
     }
@@ -65,7 +66,7 @@ module scope {
      * @method scope.Repeater.generate
      * @static
      * @param {scope.Scope} scope
-     * @param {any} expression
+     * @param {*} expression
      * @param {string} valueKey
      * @param {(s: Scope) => JQuery} rowGenerator
      * @param {string} primaryKey
@@ -89,24 +90,20 @@ module scope {
      * @param {{}} src
      */
     private render(src: {}) {
-
       var col = this.getCollection(src);
       col.forEach((data: IData, index: number) => {
-
-        var row = this.rowMap[data.key] =
-          this.rowMap[data.key] || this.generateRow(data.value);
+        var row = this.rowMap.get(data.key);
+        if (!row) this.rowMap.put(data.key, (row = this.generateRow(data.value)));
         row.scope[this.valueKey] = data.value;
-
         if (data.key === this.keys[index]) return;
 
-        var $prevRow = index ? this.rowMap[this.keys[index - 1]].elem : $(this.startComment);
+        var $prevRow = index ? this.rowMap.get(this.keys[index - 1]).elem : $(this.startComment);
         $prevRow.after(row.elem);
 
         var oldIndex = this.keys.indexOf(data.key);
         if (oldIndex > -1) this.keys.splice(oldIndex, 1);
         this.keys.splice(index, 0, data.key);
       });
-
       for (var i = col.length; i < this.keys.length; i ++) this.destroyRow(this.keys[i]);
       this.keys.length = col.length;
     }
@@ -115,16 +112,16 @@ module scope {
      *
      * @method scope.Repeater#destroyRow
      * @private
-     * @param {any} key
+     * @param {*} key
      */
     private destroyRow(key: any) {
 
-      var row = this.rowMap[key];
+      var row = this.rowMap.get(key);
       if (!row) return;
 
       row.scope.destroy();
       row.elem.remove();
-      delete this.rowMap[key]
+      delete this.rowMap.remove(key);
     }
 
     /**
@@ -154,15 +151,12 @@ module scope {
      * @returns {IData[]}
      */
     private getCollection(src: {}): IData[] {
-
       var keys = src instanceof Array ? (<any[]>src).map((v: any, i: number) => i)
         : src ? Object.keys(src).filter((k: any) => src.hasOwnProperty(k))
         : [];
-
       return (<any[]>keys).map((key: any) => {
-
         return {
-          key: this.primaryKey ? src[key][this.primaryKey] : key,
+          key: this.primaryKey ? src[key][this.primaryKey] : src[key],
           value: src[key]
         }
       });
@@ -174,18 +168,67 @@ module scope {
    * @interface IData
    */
   interface IData {
-
     key: any;
     value: any;
   }
 
   /**
-   *
-   * @interface IRowMap
+   * @class RowMap
    */
-  interface IRowMap {
+  class RowMap {
+    /**
+     * @member RowMap#_values
+     * @private
+     * @type {IData[]}
+     */
+    private _values: IRowMappingObject[] = [];
 
-    [key: string]: IRow;
+    /**
+     * @method RowMap#put
+     * @param {*} key
+     * @param {IRow} row
+     * @returns {RowMap}
+     */
+    put(key: any, row: IRow): RowMap {
+      this.remove(key);
+      this._values.push({key: key, row: row});
+      return this;
+    }
+
+    /**
+     * @method RowMap#remove
+     * @param {*} key
+     * @returns {RowMap}
+     */
+    remove(key: any): RowMap {
+      var index = this._values.map((o: IRowMappingObject) => o.key).indexOf(key);
+      if (index === -1) return this;
+      this._values.splice(index, 1);
+      return this;
+    }
+
+    /**
+     * @method RowMap#get
+     * @param {*} key
+     * @returns {T} value
+     */
+    get(key: any): IRow {
+      var index = this._values.map((o: IRowMappingObject) => o.key).indexOf(key);
+      return index > -1 ? this._values[index].row : null;
+    }
+
+    /**
+     * @method RowMap#values
+     * @returns {*[]}
+     */
+    get values(): IRow[] {
+      return this._values.map((o: IRowMappingObject) => o.row);
+    }
+  }
+
+  interface IRowMappingObject {
+    key: any;
+    row: IRow;
   }
 
   /**
@@ -193,7 +236,6 @@ module scope {
    * @interface IRow
    */
   interface IRow {
-
     elem: JQuery;
     scope: Scope;
   }
