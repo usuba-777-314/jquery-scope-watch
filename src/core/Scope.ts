@@ -254,6 +254,15 @@ module scope {
     }
 
     /**
+     * Call callback when click.
+     * @param {*} selector
+     * @param {string|Function} callback
+     */
+    click(selector: any, callback: string|Function) {
+      ClickWorker.apply(this, $(selector), callback);
+    }
+
+    /**
      *
      * @method scope.Scope#repeat
      * @param {*} expression

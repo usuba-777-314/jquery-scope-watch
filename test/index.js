@@ -49,11 +49,7 @@ $(function() {
     appScope.showUser(editScope.user);
   };
 
-  $('#list-view .new-user').on('click', function() {
-    listScope.showNewUser();
-    $.scope.apply();
-  });
-
+  listScope.click('#list-view .new-user', 'showNewUser()');
   listScope.hide('!!users.length', '#list-view .not-found-message');
   listScope.show('!!users.length', '#list-view table');
 
@@ -64,18 +60,9 @@ $(function() {
     scope.bind('user.id', $row.find('.id'));
     scope.bind('user.name', $row.find('.name'));
     scope.bind('user.age', $row.find('.age'));
-    $row.find('.show-user').on('click', function() {
-      listScope.showUser(scope.user);
-      $.scope.apply();
-    });
-    $row.find('.edit-user').on('click', function() {
-      listScope.showEditUser(scope.user);
-      $.scope.apply();
-    });
-    $row.find('.delete-user').on('click', function() {
-      listScope.destroyUser(scope.user);
-      $.scope.apply();
-    });
+    scope.click($row.find('.show-user'), 'showUser(user)');
+    scope.click($row.find('.edit-user'), 'showEditUser(user)');
+    scope.click($row.find('.delete-user'), 'destroyUser(user)');
     return $row;
   }, 'id').appendTo('#list-view table');
 

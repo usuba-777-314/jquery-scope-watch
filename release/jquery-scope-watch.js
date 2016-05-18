@@ -8,6 +8,128 @@
  * @namespace
  */
 var scope;
+(function (scope) {
+    /**
+     * Shallow watch the properties of an object, and to applied.
+     * @class scope.CollectionWatcher
+     */
+    var CollectionWatcher = (function () {
+        /**
+         * @constructor
+         * @param {() => any} valueGetter
+         * @param {(newValue: any, oldValue: any) => void} apply
+         */
+        function CollectionWatcher(valueGetter, apply) {
+            this.valueGetter = valueGetter;
+            this.apply = apply;
+        }
+        /**
+         * Shallow copy a value.
+         * @method scope.CollectionWatcher.copy
+         * @static
+         * @private
+         * @param {*} value
+         * @returns {*} Value after shallow copying.
+         */
+        CollectionWatcher.copy = function (value) {
+            if (!(value != null && typeof value === 'object')) {
+                return value;
+            }
+            if (Array.isArray(value)) {
+                var array = [];
+                for (var k in value)
+                    if (value.hasOwnProperty(k))
+                        array[k] = value[k];
+                return array;
+            }
+            var obj = {};
+            for (var k in value)
+                if (value.hasOwnProperty(k))
+                    obj[k] = value[k];
+            return obj;
+        };
+        /**
+         * If the value has been changed, it apply.
+         * @method scope.CollectionWatcher#call
+         */
+        CollectionWatcher.prototype.call = function () {
+            var value = this.valueGetter();
+            this.oldValue = this.newValue;
+            this.newValue = CollectionWatcher.copy(this.valueGetter());
+            if (!this.isChange())
+                return;
+            this.apply(value, this.oldValue);
+        };
+        /**
+         * Check if the value has been changed.
+         * @method scope.CollectionWatcher#isChange
+         * @private
+         * @returns {boolean} Return "true" if the value has been changed, else "false".
+         */
+        CollectionWatcher.prototype.isChange = function () {
+            var _this = this;
+            if (this.newValue == null || this.oldValue == null)
+                return this.newValue != this.oldValue;
+            if (typeof this.newValue !== 'object' || typeof this.oldValue !== 'object')
+                return this.newValue !== this.oldValue;
+            return Object.keys(this.newValue).concat(Object.keys(this.oldValue))
+                .some(function (k) { return _this.newValue[k] !== _this.oldValue[k]; });
+        };
+        return CollectionWatcher;
+    }());
+    scope.CollectionWatcher = CollectionWatcher;
+})(scope || (scope = {}));
+/**
+ * Namespace of the jquery-scope-watch.
+ * @namespace
+ */
+var scope;
+(function (scope) {
+    /**
+     * Watch a value, and to applied.
+     * @class scope.Watcher
+     */
+    var Watcher = (function () {
+        /**
+         * @constructor
+         * @param {() => any} valueGetter
+         * @param {(newValue: any, oldValue: any) => void} apply
+         */
+        function Watcher(valueGetter, apply) {
+            this.valueGetter = valueGetter;
+            this.apply = apply;
+        }
+        /**
+         * If the value has been changed, it apply.
+         * @method scope.Watcher#call
+         */
+        Watcher.prototype.call = function () {
+            this.oldValue = this.newValue;
+            this.newValue = this.valueGetter();
+            if (!this.apply)
+                return;
+            if (!this.isChange())
+                return;
+            this.apply(this.newValue, this.oldValue);
+        };
+        /**
+         * Check if the value has been changed.
+         * @method scope.Watcher#isChange
+         * @private
+         * @returns {boolean} Return "true" if the value has been changed, else "false".
+         */
+        Watcher.prototype.isChange = function () {
+            return this.newValue !== this.oldValue;
+        };
+        return Watcher;
+    }());
+    scope.Watcher = Watcher;
+})(scope || (scope = {}));
+/**
+ * Namespace of the jquery-scope-watch.
+ * @namespace
+ */
+var scope;
 (function (scope_1) {
     /**
      * Watch of scope.
@@ -231,6 +353,14 @@ var scope;
             scope_1.KlassWorker.apply(this, expression, $(selector), klass);
         };
         /**
+         * Call callback when click.
+         * @param {*} selector
+         * @param {string|Function} callback
+         */
+        Scope.prototype.click = function (selector, callback) {
+            scope_1.ClickWorker.apply(this, $(selector), callback);
+        };
+        /**
          *
          * @method scope.Scope#repeat
          * @param {*} expression
@@ -327,128 +457,6 @@ var scope;
  * @namespace
  */
 var scope;
-(function (scope) {
-    /**
-     * Shallow watch the properties of an object, and to applied.
-     * @class scope.CollectionWatcher
-     */
-    var CollectionWatcher = (function () {
-        /**
-         * @constructor
-         * @param {() => any} valueGetter
-         * @param {(newValue: any, oldValue: any) => void} apply
-         */
-        function CollectionWatcher(valueGetter, apply) {
-            this.valueGetter = valueGetter;
-            this.apply = apply;
-        }
-        /**
-         * Shallow copy a value.
-         * @method scope.CollectionWatcher.copy
-         * @static
-         * @private
-         * @param {*} value
-         * @returns {*} Value after shallow copying.
-         */
-        CollectionWatcher.copy = function (value) {
-            if (!(value != null && typeof value === 'object')) {
-                return value;
-            }
-            if (Array.isArray(value)) {
-                var array = [];
-                for (var k in value)
-                    if (value.hasOwnProperty(k))
-                        array[k] = value[k];
-                return array;
-            }
-            var obj = {};
-            for (var k in value)
-                if (value.hasOwnProperty(k))
-                    obj[k] = value[k];
-            return obj;
-        };
-        /**
-         * If the value has been changed, it apply.
-         * @method scope.CollectionWatcher#call
-         */
-        CollectionWatcher.prototype.call = function () {
-            var value = this.valueGetter();
-            this.oldValue = this.newValue;
-            this.newValue = CollectionWatcher.copy(this.valueGetter());
-            if (!this.isChange())
-                return;
-            this.apply(value, this.oldValue);
-        };
-        /**
-         * Check if the value has been changed.
-         * @method scope.CollectionWatcher#isChange
-         * @private
-         * @returns {boolean} Return "true" if the value has been changed, else "false".
-         */
-        CollectionWatcher.prototype.isChange = function () {
-            var _this = this;
-            if (this.newValue == null || this.oldValue == null)
-                return this.newValue != this.oldValue;
-            if (typeof this.newValue !== 'object' || typeof this.oldValue !== 'object')
-                return this.newValue !== this.oldValue;
-            return Object.keys(this.newValue).concat(Object.keys(this.oldValue))
-                .some(function (k) { return _this.newValue[k] !== _this.oldValue[k]; });
-        };
-        return CollectionWatcher;
-    }());
-    scope.CollectionWatcher = CollectionWatcher;
-})(scope || (scope = {}));
-/**
- * Namespace of the jquery-scope-watch.
- * @namespace
- */
-var scope;
-(function (scope) {
-    /**
-     * Watch a value, and to applied.
-     * @class scope.Watcher
-     */
-    var Watcher = (function () {
-        /**
-         * @constructor
-         * @param {() => any} valueGetter
-         * @param {(newValue: any, oldValue: any) => void} apply
-         */
-        function Watcher(valueGetter, apply) {
-            this.valueGetter = valueGetter;
-            this.apply = apply;
-        }
-        /**
-         * If the value has been changed, it apply.
-         * @method scope.Watcher#call
-         */
-        Watcher.prototype.call = function () {
-            this.oldValue = this.newValue;
-            this.newValue = this.valueGetter();
-            if (!this.apply)
-                return;
-            if (!this.isChange())
-                return;
-            this.apply(this.newValue, this.oldValue);
-        };
-        /**
-         * Check if the value has been changed.
-         * @method scope.Watcher#isChange
-         * @private
-         * @returns {boolean} Return "true" if the value has been changed, else "false".
-         */
-        Watcher.prototype.isChange = function () {
-            return this.newValue !== this.oldValue;
-        };
-        return Watcher;
-    }());
-    scope.Watcher = Watcher;
-})(scope || (scope = {}));
-/**
- * Namespace of the jquery-scope-watch.
- * @namespace
- */
-var scope;
 (function (scope_3) {
     /**
      * Worker to bind value to DOM text
@@ -480,6 +488,51 @@ var scope;
 var scope;
 (function (scope_4) {
     /**
+     * Worker to call callback where click
+     * @class scope.ClickWorker
+     */
+    var ClickWorker = (function () {
+        function ClickWorker() {
+        }
+        /**
+         * Call callback where click
+         * @method scope.ClickWorker.apply
+         * @static
+         * @param {scope.Scope} scope
+         * @param {JQuery} $target
+         * @param {string|Function} _callback
+         */
+        ClickWorker.apply = function (scope, $target, _callback) {
+            var callback = ClickWorker.compile(scope, _callback);
+            var wrapper = function (event) {
+                callback(event);
+                $.scope.apply();
+            };
+            $target.on('click', wrapper);
+            scope.on('destroy', function () { return $target.off('click', wrapper); });
+        };
+        /**
+         * Compile expression to callback, if callback is expression.
+         * @param {Scope} scope
+         * @param {string|Function} callback
+         * @returns {Function}
+         */
+        ClickWorker.compile = function (scope, callback) {
+            return typeof callback === 'string'
+                ? scope_4.Parser.generate(callback).bind(null, scope)
+                : callback;
+        };
+        return ClickWorker;
+    }());
+    scope_4.ClickWorker = ClickWorker;
+})(scope || (scope = {}));
+/**
+ * Namespace of the jquery-scope-watch.
+ * @namespace
+ */
+var scope;
+(function (scope_5) {
+    /**
      * Worker to hide DOM
      * @class scope.HideWorker
      */
@@ -500,14 +553,14 @@ var scope;
         };
         return HideWorker;
     }());
-    scope_4.HideWorker = HideWorker;
+    scope_5.HideWorker = HideWorker;
 })(scope || (scope = {}));
 /**
  * Namespace of the jquery-scope-watch.
  * @namespace
  */
 var scope;
-(function (scope_5) {
+(function (scope_6) {
     /**
      * Worker to toggle class of DOM
      * @class scope.KlassWorker
@@ -530,14 +583,14 @@ var scope;
         };
         return KlassWorker;
     }());
-    scope_5.KlassWorker = KlassWorker;
+    scope_6.KlassWorker = KlassWorker;
 })(scope || (scope = {}));
 /**
  * Namespace of the jquery-scope-watch.
  * @namespace
  */
 var scope;
-(function (scope_6) {
+(function (scope_7) {
     /**
      *
      * @class scope.RepeatWorker
@@ -667,7 +720,7 @@ var scope;
         };
         return RepeatWorker;
     }());
-    scope_6.RepeatWorker = RepeatWorker;
+    scope_7.RepeatWorker = RepeatWorker;
     /**
      * @class RowMap
      */
@@ -731,7 +784,7 @@ var scope;
  * @namespace
  */
 var scope;
-(function (scope_7) {
+(function (scope_8) {
     /**
      * Worker to show DOM
      * @class scope.ShowWorker
@@ -753,5 +806,5 @@ var scope;
         };
         return ShowWorker;
     }());
-    scope_7.ShowWorker = ShowWorker;
+    scope_8.ShowWorker = ShowWorker;
 })(scope || (scope = {}));
