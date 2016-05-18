@@ -73,12 +73,7 @@ $(function() {
   showScope.bind('user.memo', '#show-view .memo pre');
 
   newScope.show('mode === MODE.NEW', '#new-view');
-  $('#new-view form')
-    .on('submit', function(e) {
-      e.preventDefault();
-      newScope.create();
-      $.scope.apply();
-    })
+  newScope.submit('#new-view form', 'create()');
   newScope.watch('user.name', function(v) {if (v !== $('#new-view .name').val()) $('#new-view .name').val(v)});
   $('#new-view .name').on('input change', function() {
     newScope.user.name = $(this).val();
@@ -96,12 +91,7 @@ $(function() {
   });
 
   editScope.show('mode === MODE.EDIT', '#edit-view');
-  $('#edit-view form')
-    .on('submit', function(e) {
-      e.preventDefault();
-      editScope.update();
-      $.scope.apply();
-    });
+  editScope.submit('#edit-view form', 'update()');
   editScope.bind('user.id', '#edit-view .id');
   editScope.watch('user.name', function(v) {if (v !== $('#edit-view .name').val()) $('#edit-view .name').val(v)});
   $('#edit-view .name').on('input change', function() {

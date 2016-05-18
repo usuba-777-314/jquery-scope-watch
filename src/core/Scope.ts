@@ -263,6 +263,15 @@ module scope {
     }
 
     /**
+     * Call callback when submit.
+     * @param {*} selector
+     * @param {string|Function} callback
+     */
+    submit(selector: any, callback: string|Function) {
+      SubmitWorker.apply(this, $(selector), callback);
+    }
+
+    /**
      *
      * @method scope.Scope#repeat
      * @param {*} expression

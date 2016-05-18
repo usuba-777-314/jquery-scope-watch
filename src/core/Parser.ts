@@ -20,14 +20,8 @@ module scope {
       return (scope: Scope): any => {
         try {
           eval('var ' + Parser.SCOPE + ' = scope');
-          var result = eval(expression);
-          console.log([expression, scope, result]);
           return eval(expression);
-        } catch (e) {
-          /* Kill exception */
-          console.log([expression, scope, undefined]);
-          return undefined;
-        }
+        } catch (e) {/* Kill exception */}
       }
     }
     
