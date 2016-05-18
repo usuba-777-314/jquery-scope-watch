@@ -9,12 +9,14 @@ $(function() {
   appScope.MODE = {NONE: 'none', SHOW: 'show', NEW: 'new', EDIT: 'edit'};
 
   appScope.init = function() {
-    conditionsScope.conditions = {};
+    appScope.languages = Language.query();
     appScope.mode = appScope.MODE.NONE;
+    conditionsScope.conditions = {};
     listScope.users = User.query();
   };
 
   appScope.search = function() {
+    appScope.mode = appScope.MODE.NONE;
     listScope.users = User.query(conditionsScope.conditions);
   };
 
@@ -52,6 +54,7 @@ $(function() {
 
   conditionsScope.input('conditions.name', '#conditions-view .name').change('search()');
   conditionsScope.input('conditions.age', '#conditions-view .age').change('search()');
+  conditionsScope.select('conditions.languageId', '#conditions-view .language', 'languages', 'id', 'name').change('search()');
 
   listScope.hide('!!users.length', '#list-view .not-found-message');
   listScope.show('!!users.length', '#list-view .list');
@@ -62,6 +65,7 @@ $(function() {
     scope.bind('user.id', $row.find('.id'));
     scope.bind('user.name', $row.find('.name'));
     scope.bind('user.age', $row.find('.age'));
+    scope.bind('user.language.name', $row.find('.language'));
     scope.click($row.find('.show-user'), 'showUser(user)');
     scope.click($row.find('.edit-user'), 'showEditUser(user)');
     scope.click($row.find('.delete-user'), 'destroyUser(user)');
@@ -73,13 +77,15 @@ $(function() {
   showScope.bind('user.id', '#show-view .id');
   showScope.bind('user.name', '#show-view .name');
   showScope.bind('user.age', '#show-view .age');
+  showScope.bind('user.language.name', '#show-view .language');
   showScope.bind('user.memo', '#show-view .memo pre');
 
   newScope.show('mode === MODE.NEW', '#new-view');
   newScope.submit('#new-view form', 'create()');
   newScope.input('user.name', '#new-view .name');
   newScope.input('user.age', '#new-view .age');
-  newScope.input('user.memo', 'input change');
+  newScope.input('user.memo', '#new-view memo');
+  newScope.select('user.languageId', '#new-view .language', 'languages', 'id', 'name');
 
   editScope.show('mode === MODE.EDIT', '#edit-view');
   editScope.submit('#edit-view form', 'update()');
@@ -87,6 +93,7 @@ $(function() {
   editScope.input('user.name', '#edit-view .name');
   editScope.input('user.age', '#edit-view .age');
   editScope.input('user.memo', '#edit-view .memo');
+  editScope.select('user.languageId', '#edit-view .language', 'languages', 'id', 'name');
 
   appScope.init();
   $.scope.apply();

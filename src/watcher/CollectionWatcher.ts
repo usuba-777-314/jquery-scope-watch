@@ -33,7 +33,8 @@ module scope {
      */
     constructor(private valueGetter: () => any,
                 private apply: (newValue: any, oldValue: any) => void) {
-
+      this.newValue = NaN;
+      this.oldValue = NaN;
     }
 
     /**

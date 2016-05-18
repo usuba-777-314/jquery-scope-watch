@@ -231,6 +231,15 @@ var scope;
             scope_1.KlassWorker.apply(this, expression, $(selector), klass);
         };
         /**
+         * Bind value attr of DOM.
+         * @param {*} expression
+         * @param {*} selector
+         * @param {string} attr
+         */
+        Scope.prototype.attr = function (expression, selector, attr) {
+            scope_1.AttrWorker.apply(this, expression, $(selector), attr);
+        };
+        /**
          * Call callback when click.
          * @param {*} selector
          * @param {string|Function} callback
@@ -241,12 +250,25 @@ var scope;
         /**
          * Return InputWorker instance.
          * Bind scope value to input value, and bind input value to scope value.
-         * @param expression
-         * @param selector
+         * @param {string} expression
+         * @param {*} selector
          * @returns {InputWorker}
          */
         Scope.prototype.input = function (expression, selector) {
             return scope_1.InputWorker.generate(this, expression, $(selector));
+        };
+        /**
+         * Return SelectWorker instance.
+         * Bind scope value to input value, and bind input value to scope value.
+         * @param {string} expression
+         * @param {*} selector
+         * @param {*} dataExpression
+         * @param {string} valueKey
+         * @param {string} labelKey
+         * @returns {SelectWorker}
+         */
+        Scope.prototype.select = function (expression, selector, dataExpression, valueKey, labelKey) {
+            return scope_1.SelectWorker.generate(this, expression, $(selector), dataExpression, valueKey, labelKey);
         };
         /**
          * Call callback when submit.
@@ -355,129 +377,36 @@ var scope;
  * @namespace
  */
 var scope;
-(function (scope) {
-    /**
-     * Shallow watch the properties of an object, and to applied.
-     * @class scope.CollectionWatcher
-     */
-    var CollectionWatcher = (function () {
-        /**
-         * @constructor
-         * @param {() => any} valueGetter
-         * @param {(newValue: any, oldValue: any) => void} apply
-         */
-        function CollectionWatcher(valueGetter, apply) {
-            this.valueGetter = valueGetter;
-            this.apply = apply;
-        }
-        /**
-         * Shallow copy a value.
-         * @method scope.CollectionWatcher.copy
-         * @static
-         * @private
-         * @param {*} value
-         * @returns {*} Value after shallow copying.
-         */
-        CollectionWatcher.copy = function (value) {
-            if (!(value != null && typeof value === 'object')) {
-                return value;
-            }
-            if (Array.isArray(value)) {
-                var array = [];
-                for (var k in value)
-                    if (value.hasOwnProperty(k))
-                        array[k] = value[k];
-                return array;
-            }
-            var obj = {};
-            for (var k in value)
-                if (value.hasOwnProperty(k))
-                    obj[k] = value[k];
-            return obj;
-        };
-        /**
-         * If the value has been changed, it apply.
-         * @method scope.CollectionWatcher#call
-         */
-        CollectionWatcher.prototype.call = function () {
-            var value = this.valueGetter();
-            this.oldValue = this.newValue;
-            this.newValue = CollectionWatcher.copy(this.valueGetter());
-            if (!this.isChange())
-                return;
-            this.apply(value, this.oldValue);
-        };
-        /**
-         * Check if the value has been changed.
-         * @method scope.CollectionWatcher#isChange
-         * @private
-         * @returns {boolean} Return "true" if the value has been changed, else "false".
-         */
-        CollectionWatcher.prototype.isChange = function () {
-            var _this = this;
-            if (this.newValue == null || this.oldValue == null)
-                return this.newValue != this.oldValue;
-            if (typeof this.newValue !== 'object' || typeof this.oldValue !== 'object')
-                return this.newValue !== this.oldValue;
-            return Object.keys(this.newValue).concat(Object.keys(this.oldValue))
-                .some(function (k) { return _this.newValue[k] !== _this.oldValue[k]; });
-        };
-        return CollectionWatcher;
-    }());
-    scope.CollectionWatcher = CollectionWatcher;
-})(scope || (scope = {}));
-/**
- * Namespace of the jquery-scope-watch.
- * @namespace
- */
-var scope;
-(function (scope) {
-    /**
-     * Watch a value, and to applied.
-     * @class scope.Watcher
-     */
-    var Watcher = (function () {
-        /**
-         * @constructor
-         * @param {() => any} valueGetter
-         * @param {(newValue: any, oldValue: any) => void} apply
-         */
-        function Watcher(valueGetter, apply) {
-            this.valueGetter = valueGetter;
-            this.apply = apply;
-        }
-        /**
-         * If the value has been changed, it apply.
-         * @method scope.Watcher#call
-         */
-        Watcher.prototype.call = function () {
-            this.oldValue = this.newValue;
-            this.newValue = this.valueGetter();
-            if (!this.apply)
-                return;
-            if (!this.isChange())
-                return;
-            this.apply(this.newValue, this.oldValue);
-        };
-        /**
-         * Check if the value has been changed.
-         * @method scope.Watcher#isChange
-         * @private
-         * @returns {boolean} Return "true" if the value has been changed, else "false".
-         */
-        Watcher.prototype.isChange = function () {
-            return this.newValue !== this.oldValue;
-        };
-        return Watcher;
-    }());
-    scope.Watcher = Watcher;
-})(scope || (scope = {}));
-/**
- * Namespace of the jquery-scope-watch.
- * @namespace
- */
-var scope;
 (function (scope_3) {
+    /**
+     * Worker to bind value attr of DOM
+     * @class scope.AttrWorker
+     */
+    var AttrWorker = (function () {
+        function AttrWorker() {
+        }
+        /**
+         * Bind value attr of DOM.
+         * @method scope.AttrWorker.apply
+         * @static
+         * @param {scope.Scope} scope
+         * @param {*} expression
+         * @param {JQuery} $target
+         * @param {string} attr
+         */
+        AttrWorker.apply = function (scope, expression, $target, attr) {
+            scope.watch(expression, function (v) { return $target.attr(attr, v || null); });
+        };
+        return AttrWorker;
+    }());
+    scope_3.AttrWorker = AttrWorker;
+})(scope || (scope = {}));
+/**
+ * Namespace of the jquery-scope-watch.
+ * @namespace
+ */
+var scope;
+(function (scope_4) {
     /**
      * Worker to bind value to DOM text
      * @class scope.BindWorker
@@ -499,14 +428,14 @@ var scope;
         };
         return BindWorker;
     }());
-    scope_3.BindWorker = BindWorker;
+    scope_4.BindWorker = BindWorker;
 })(scope || (scope = {}));
 /**
  * Namespace of the jquery-scope-watch.
  * @namespace
  */
 var scope;
-(function (scope_4) {
+(function (scope_5) {
     /**
      * Worker to call callback where click
      * @class scope.ClickWorker
@@ -539,19 +468,19 @@ var scope;
          */
         ClickWorker.compile = function (scope, callback) {
             return typeof callback === 'string'
-                ? scope_4.Parser.generate(callback).bind(null, scope)
+                ? scope_5.Parser.generate(callback).bind(null, scope)
                 : callback;
         };
         return ClickWorker;
     }());
-    scope_4.ClickWorker = ClickWorker;
+    scope_5.ClickWorker = ClickWorker;
 })(scope || (scope = {}));
 /**
  * Namespace of the jquery-scope-watch.
  * @namespace
  */
 var scope;
-(function (scope_5) {
+(function (scope_6) {
     /**
      * Worker to hide DOM
      * @class scope.HideWorker
@@ -573,14 +502,14 @@ var scope;
         };
         return HideWorker;
     }());
-    scope_5.HideWorker = HideWorker;
+    scope_6.HideWorker = HideWorker;
 })(scope || (scope = {}));
 /**
  * Namespace of the jquery-scope-watch.
  * @namespace
  */
 var scope;
-(function (scope_6) {
+(function (scope_7) {
     /**
      * Worker to Bind scope value to input value, and bind input value to scope value
      * @class scope.InputWorker
@@ -630,7 +559,7 @@ var scope;
                     return;
                 _this.$input.val(newValue);
             });
-            var setter = scope_6.Parser.generate(this.expression).assign;
+            var setter = scope_7.Parser.generate(this.expression).assign;
             var inputCallback = function (event) {
                 if (!_this.isChanged(_this.$input.val()))
                     return;
@@ -649,7 +578,7 @@ var scope;
          */
         InputWorker.prototype.compile = function (callback) {
             return typeof callback === 'string'
-                ? scope_6.Parser.generate(callback).bind(null, this.scope)
+                ? scope_7.Parser.generate(callback).bind(null, this.scope)
                 : callback;
         };
         /**
@@ -667,14 +596,14 @@ var scope;
         };
         return InputWorker;
     }());
-    scope_6.InputWorker = InputWorker;
+    scope_7.InputWorker = InputWorker;
 })(scope || (scope = {}));
 /**
  * Namespace of the jquery-scope-watch.
  * @namespace
  */
 var scope;
-(function (scope_7) {
+(function (scope_8) {
     /**
      * Worker to toggle class of DOM
      * @class scope.KlassWorker
@@ -697,14 +626,14 @@ var scope;
         };
         return KlassWorker;
     }());
-    scope_7.KlassWorker = KlassWorker;
+    scope_8.KlassWorker = KlassWorker;
 })(scope || (scope = {}));
 /**
  * Namespace of the jquery-scope-watch.
  * @namespace
  */
 var scope;
-(function (scope_8) {
+(function (scope_9) {
     /**
      *
      * @class scope.RepeatWorker
@@ -834,7 +763,7 @@ var scope;
         };
         return RepeatWorker;
     }());
-    scope_8.RepeatWorker = RepeatWorker;
+    scope_9.RepeatWorker = RepeatWorker;
     /**
      * @class RowMap
      */
@@ -898,7 +827,135 @@ var scope;
  * @namespace
  */
 var scope;
-(function (scope_9) {
+(function (scope_10) {
+    /**
+     * Worker to Bind scope value to select value, and bind select value to scope value
+     * @class scope.SelectWorker
+     */
+    var SelectWorker = (function () {
+        /**
+         * @constructor
+         * @param {Scope} scope
+         * @param {string} expression
+         * @param {JQuery} $select
+         * @param {string} dataExpression
+         * @param {string} valueKey
+         * @param {string} labelKey
+         */
+        function SelectWorker(scope, expression, $select, dataExpression, valueKey, labelKey) {
+            this.scope = scope;
+            this.expression = expression;
+            this.$select = $select;
+            this.dataExpression = dataExpression;
+            this.valueKey = valueKey;
+            this.labelKey = labelKey;
+            this.value = NaN;
+            this.callbacks = [];
+        }
+        /**
+         * Generate SelectWorker instance.
+         * Bind scope value to input value, and bind input value to scope value.
+         * @param {Scope} scope
+         * @param {string} expression
+         * @param {JQuery} $select
+         * @param {*} dataExpression
+         * @param {string} valueKey
+         * @param {string} labelKey
+         */
+        SelectWorker.generate = function (scope, expression, $select, dataExpression, valueKey, labelKey) {
+            var worker = new SelectWorker(scope, expression, $select, dataExpression, valueKey, labelKey);
+            worker.init();
+            return worker;
+        };
+        /**
+         * Call callback when change.
+         * @param {string|Function} callback
+         */
+        SelectWorker.prototype.change = function (callback) {
+            this.callbacks.push(this.compile(callback));
+        };
+        /**
+         * Initialize "input event/watch event".
+         * Bind scope value to input value, and bind input value to scope value.
+         * @private
+         * @method scope.SelectWorker#init
+         */
+        SelectWorker.prototype.init = function () {
+            var _this = this;
+            this.scope.repeat(this.dataExpression, 'option', function (scope) {
+                var $option = $('<option>');
+                var valueKey = _this.valueKey ? 'option.' + _this.valueKey : 'option';
+                var labelKey = _this.labelKey ? 'option.' + _this.labelKey : 'option';
+                scope.attr(valueKey, $option, 'value');
+                scope.attr(labelKey, $option, 'label');
+                scope.watch(valueKey, function (v) { return $option.data(SelectWorker.OPTION_VALUE_KEY, v || null); });
+                return $option;
+            }, this.valueKey).appendTo(this.$select);
+            this.scope.watch(this.expression, function (newValue) {
+                if (!_this.isChanged(newValue))
+                    return;
+                _this.$select.val(newValue);
+            });
+            var setter = scope_10.Parser.generate(this.expression).assign;
+            var inputCallback = function (event) {
+                if (!_this.isChanged(_this.getSelectValue()))
+                    return;
+                setter(_this.scope, _this.getSelectValue());
+                _this.callbacks.forEach(function (c) { return c(event); });
+                $.scope.apply();
+            };
+            this.$select.on('change input', inputCallback);
+            this.scope.on('destroy', function () { return _this.$select.off('change input', function () { }); });
+        };
+        /**
+         * Compile expression to callback, if callback is expression.
+         * @method scope.SelectWorker#compile
+         * @param {string|Function} callback
+         * @returns {Function}
+         */
+        SelectWorker.prototype.compile = function (callback) {
+            return typeof callback === 'string'
+                ? scope_10.Parser.generate(callback).bind(null, this.scope)
+                : callback;
+        };
+        /**
+         * If value was change, return true.
+         * Otherwise return false.
+         * @method scope.SelectWorker#isChanged
+         * @param {*} value
+         * @return {boolean}
+         */
+        SelectWorker.prototype.isChanged = function (value) {
+            if (this.value === value)
+                return false;
+            this.value = value;
+            return true;
+        };
+        /**
+         * Return input value.
+         * @method scope.SelectWorker#getSelectValue
+         * @return {*}
+         */
+        SelectWorker.prototype.getSelectValue = function () {
+            return this.$select.find('option:selected').data(SelectWorker.OPTION_VALUE_KEY);
+        };
+        /**
+         * @static
+         * @private
+         * @member scope.SelectWorker.OPTION_VALUE_KEY
+         * @type {string}
+         */
+        SelectWorker.OPTION_VALUE_KEY = '_select_option_value';
+        return SelectWorker;
+    }());
+    scope_10.SelectWorker = SelectWorker;
+})(scope || (scope = {}));
+/**
+ * Namespace of the jquery-scope-watch.
+ * @namespace
+ */
+var scope;
+(function (scope_11) {
     /**
      * Worker to show DOM
      * @class scope.ShowWorker
@@ -920,14 +977,14 @@ var scope;
         };
         return ShowWorker;
     }());
-    scope_9.ShowWorker = ShowWorker;
+    scope_11.ShowWorker = ShowWorker;
 })(scope || (scope = {}));
 /**
  * Namespace of the jquery-scope-watch.
  * @namespace
  */
 var scope;
-(function (scope_10) {
+(function (scope_12) {
     /**
      * Worker to call callback where submit
      * @class scope.SubmitWorker
@@ -961,10 +1018,136 @@ var scope;
          */
         SubmitWorker.compile = function (scope, callback) {
             return typeof callback === 'string'
-                ? scope_10.Parser.generate(callback).bind(null, scope)
+                ? scope_12.Parser.generate(callback).bind(null, scope)
                 : callback;
         };
         return SubmitWorker;
     }());
-    scope_10.SubmitWorker = SubmitWorker;
+    scope_12.SubmitWorker = SubmitWorker;
+})(scope || (scope = {}));
+/**
+ * Namespace of the jquery-scope-watch.
+ * @namespace
+ */
+var scope;
+(function (scope) {
+    /**
+     * Shallow watch the properties of an object, and to applied.
+     * @class scope.CollectionWatcher
+     */
+    var CollectionWatcher = (function () {
+        /**
+         * @constructor
+         * @param {() => any} valueGetter
+         * @param {(newValue: any, oldValue: any) => void} apply
+         */
+        function CollectionWatcher(valueGetter, apply) {
+            this.valueGetter = valueGetter;
+            this.apply = apply;
+            this.newValue = NaN;
+            this.oldValue = NaN;
+        }
+        /**
+         * Shallow copy a value.
+         * @method scope.CollectionWatcher.copy
+         * @static
+         * @private
+         * @param {*} value
+         * @returns {*} Value after shallow copying.
+         */
+        CollectionWatcher.copy = function (value) {
+            if (!(value != null && typeof value === 'object')) {
+                return value;
+            }
+            if (Array.isArray(value)) {
+                var array = [];
+                for (var k in value)
+                    if (value.hasOwnProperty(k))
+                        array[k] = value[k];
+                return array;
+            }
+            var obj = {};
+            for (var k in value)
+                if (value.hasOwnProperty(k))
+                    obj[k] = value[k];
+            return obj;
+        };
+        /**
+         * If the value has been changed, it apply.
+         * @method scope.CollectionWatcher#call
+         */
+        CollectionWatcher.prototype.call = function () {
+            var value = this.valueGetter();
+            this.oldValue = this.newValue;
+            this.newValue = CollectionWatcher.copy(this.valueGetter());
+            if (!this.isChange())
+                return;
+            this.apply(value, this.oldValue);
+        };
+        /**
+         * Check if the value has been changed.
+         * @method scope.CollectionWatcher#isChange
+         * @private
+         * @returns {boolean} Return "true" if the value has been changed, else "false".
+         */
+        CollectionWatcher.prototype.isChange = function () {
+            var _this = this;
+            if (this.newValue == null || this.oldValue == null)
+                return this.newValue != this.oldValue;
+            if (typeof this.newValue !== 'object' || typeof this.oldValue !== 'object')
+                return this.newValue !== this.oldValue;
+            return Object.keys(this.newValue).concat(Object.keys(this.oldValue))
+                .some(function (k) { return _this.newValue[k] !== _this.oldValue[k]; });
+        };
+        return CollectionWatcher;
+    }());
+    scope.CollectionWatcher = CollectionWatcher;
+})(scope || (scope = {}));
+/**
+ * Namespace of the jquery-scope-watch.
+ * @namespace
+ */
+var scope;
+(function (scope) {
+    /**
+     * Watch a value, and to applied.
+     * @class scope.Watcher
+     */
+    var Watcher = (function () {
+        /**
+         * @constructor
+         * @param {() => any} valueGetter
+         * @param {(newValue: any, oldValue: any) => void} apply
+         */
+        function Watcher(valueGetter, apply) {
+            this.valueGetter = valueGetter;
+            this.apply = apply;
+            this.newValue = NaN;
+            this.oldValue = NaN;
+        }
+        /**
+         * If the value has been changed, it apply.
+         * @method scope.Watcher#call
+         */
+        Watcher.prototype.call = function () {
+            this.oldValue = this.newValue;
+            this.newValue = this.valueGetter();
+            if (!this.apply)
+                return;
+            if (!this.isChange())
+                return;
+            this.apply(this.newValue, this.oldValue);
+        };
+        /**
+         * Check if the value has been changed.
+         * @method scope.Watcher#isChange
+         * @private
+         * @returns {boolean} Return "true" if the value has been changed, else "false".
+         */
+        Watcher.prototype.isChange = function () {
+            return this.newValue !== this.oldValue;
+        };
+        return Watcher;
+    }());
+    scope.Watcher = Watcher;
 })(scope || (scope = {}));
