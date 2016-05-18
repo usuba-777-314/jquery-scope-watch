@@ -70,9 +70,9 @@ $(function() {
       if (childFlg) $row.addClass('child');
       else $row.removeClass('child');
     });
-    scope.watch('user.id', function(v) {$row.find('.id').text(v || '')});
-    scope.watch('user.name', function(v) {$row.find('.name').text(v || '')});
-    scope.watch('user.age', function(v) {$row.find('.age').text(v || '')});
+    scope.bind('user.id', $row.find('.id'));
+    scope.bind('user.name', $row.find('.name'));
+    scope.bind('user.age', $row.find('.age'));
     $row.find('.show-user').on('click', function() {
       listScope.showUser(scope.user);
       $.scope.apply();
@@ -92,10 +92,10 @@ $(function() {
     if (showFlg) $('#show-view').show();
     else $('#show-view').hide();
   });
-  showScope.watch('user.id', function(v) {$('#show-view .id').text(v || '')});
-  showScope.watch('user.name', function(v) {$('#show-view .name').text(v || '')});
-  showScope.watch('user.age', function(v) {$('#show-view .age').text(v || '')});
-  showScope.watch('user.memo', function(v) {$('#show-view .memo pre').text(v || '')});
+  showScope.bind('user.id', '#show-view .id');
+  showScope.bind('user.name', '#show-view .name');
+  showScope.bind('user.age', '#show-view .age');
+  showScope.bind('user.memo', '#show-view .memo pre');
 
   newScope.watch('mode === MODE.NEW', function (showFlg) {
     if (showFlg) $('#new-view').show();
@@ -132,8 +132,8 @@ $(function() {
       e.preventDefault();
       editScope.update();
       $.scope.apply();
-    })
-  editScope.watch('user.id', function(v) {$('#edit-view .id').text(v || '')});
+    });
+  editScope.bind('user.id', '#edit-view .id');
   editScope.watch('user.name', function(v) {if (v !== $('#edit-view .name').val()) $('#edit-view .name').val(v)});
   $('#edit-view .name').on('input change', function() {
     editScope.user.name = $(this).val();

@@ -63,7 +63,7 @@ module scope {
 
     /**
      *
-     * @method scope.Repeater.generate
+     * @method scope.RepeatWorker.generate
      * @static
      * @param {scope.Scope} scope
      * @param {*} expression
@@ -85,7 +85,7 @@ module scope {
 
     /**
      *
-     * @method scope.Repeater#render
+     * @method scope.RepeatWorker#render
      * @private
      * @param {{}} src
      */
@@ -110,7 +110,7 @@ module scope {
 
     /**
      *
-     * @method scope.Repeater#destroyRow
+     * @method scope.RepeatWorker#destroyRow
      * @private
      * @param {*} key
      */
@@ -126,7 +126,7 @@ module scope {
 
     /**
      *
-     * @method scope.Repeater#generateRow
+     * @method scope.RepeatWorker#generateRow
      * @private
      * @returns {IRow}
      */
@@ -145,7 +145,7 @@ module scope {
 
     /**
      *
-     * @method scope.Repeater#getCollection
+     * @method scope.RepeatWorker#getCollection
      * @private
      * @param {{}} src
      * @returns {IData[]}

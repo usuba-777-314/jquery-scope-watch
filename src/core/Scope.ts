@@ -214,6 +214,14 @@ module scope {
     }
 
     /**
+     * Bind value to DOM text.
+     * @param {*} expression
+     * @param {*} selector
+     */
+    bind(expression: any, selector: any) {
+      BindWorker.apply(this, expression, $(selector));
+    }
+    /**
      *
      * @method scope.Scope#repeat
      * @param {*} expression
@@ -241,20 +249,6 @@ module scope {
         case 'function': return <() => any>expression;
         default: return () => expression;
       }
-    }
-
-    /**
-     * Parse a expression.
-     * @method scope.Scope#parse
-     * @private
-     * @param {string} expression
-     * @returns {*} Value after Parsing.
-     */
-    private parse(expression: string): any {
-
-      return expression
-        .split('.')
-        .reduce((o: {}, k: string) => o && o[k], this);
     }
 
     /**
