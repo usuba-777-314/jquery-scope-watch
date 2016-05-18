@@ -54,20 +54,20 @@ $(function() {
     $.scope.apply();
   });
 
-  listScope.watch('users.length', function (length) {
-    if (length) $('#list-view .not-found-message').hide();
+  listScope.watch('!!users.length', function (existFlg) {
+    if (existFlg) $('#list-view .not-found-message').hide();
     else $('#list-view .not-found-message').show();
   });
-  listScope.watch('users.length', function (length) {
-    if (length) $('#list-view table').show();
+  listScope.watch('!!users.length', function (existFlg) {
+    if (existFlg) $('#list-view table').show();
     else $('#list-view table').hide();
   });
 
   var template = $('#list-row-template').html();
   listScope.repeat('users', 'user', function (scope) {
     var $row = $(template);
-    scope.watch('user.age', function (age) {
-      if (age < 20) $row.addClass('child');
+    scope.watch('user.age < 20', function (childFlg) {
+      if (childFlg) $row.addClass('child');
       else $row.removeClass('child');
     });
     scope.watch('user.id', function(v) {$row.find('.id').text(v || '')});
@@ -88,8 +88,8 @@ $(function() {
     return $row;
   }, 'id').appendTo('#list-view table');
 
-  showScope.watch('mode', function (mode) {
-    if (mode === showScope.MODE.SHOW) $('#show-view').show();
+  showScope.watch('mode === MODE.SHOW', function (showFlg) {
+    if (showFlg) $('#show-view').show();
     else $('#show-view').hide();
   });
   showScope.watch('user.id', function(v) {$('#show-view .id').text(v || '')});
@@ -97,8 +97,8 @@ $(function() {
   showScope.watch('user.age', function(v) {$('#show-view .age').text(v || '')});
   showScope.watch('user.memo', function(v) {$('#show-view .memo pre').text(v || '')});
 
-  newScope.watch('mode', function (mode) {
-    if (mode === newScope.MODE.NEW) $('#new-view').show();
+  newScope.watch('mode === MODE.NEW', function (showFlg) {
+    if (showFlg) $('#new-view').show();
     else $('#new-view').hide();
   });
   $('#new-view form')
@@ -123,8 +123,8 @@ $(function() {
     $.scope.apply();
   });
 
-  editScope.watch('mode', function (mode) {
-    if (mode === editScope.MODE.EDIT) $('#edit-view').show();
+  editScope.watch('mode === MODE.EDIT', function (showFlg) {
+    if (showFlg) $('#edit-view').show();
     else $('#edit-view').hide();
   });
   $('#edit-view form')

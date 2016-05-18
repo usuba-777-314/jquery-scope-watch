@@ -103,26 +103,13 @@ module scope {
      * Registers a apply callback to be executed the value changes.
      * @method scope.Scope#watch
      * @param {*} expression
-     * @param {(newValue: any, oldValue: any) => void} apply
+     * @param {(newValue?: any, oldValue?: any) => void} apply
      * @returns {Function} A deregistration function for this apply.
      */
-    watch(expression: any,
-          apply: (newValue: any, oldValue: any) => void): Function {
-
-      var valueGetter: () => any;
-      switch (typeof expression) {
-        case 'string': valueGetter = () => this.parse(<string>expression); break;
-        case 'function': valueGetter = <() => any>expression; break;
-        default: valueGetter = () => expression;
-      }
-
-      var watcher = new Watcher(valueGetter, apply);
+    watch(expression: any, apply: (newValue?: any, oldValue?: any) => void): Function {
+      var watcher = new Watcher(this.generateValueGetter(expression), apply);
       this.watchers.push(watcher);
-
-      return () => {
-
-        this.watchers.splice(this.watchers.indexOf(watcher), 1);
-      };
+      return () => {this.watchers.splice(this.watchers.indexOf(watcher), 1)};
     }
 
     /**
@@ -130,26 +117,13 @@ module scope {
      * Shallow watch the properties of an object, and to applied.
      * @method scope.Scope#watchCollection
      * @param {*} expression
-     * @param {(newValue: any, oldValue: any) => void} apply
+     * @param {(newValue?: any, oldValue?: any) => void} apply
      * @returns {Function} A deregistration function for this apply.
      */
-    watchCollection(expression: any,
-                    apply: (newValue: any, oldValue: any) => void): Function {
-
-      var valueGetter: () => any;
-      switch (typeof expression) {
-        case 'string': valueGetter = () => this.parse(<string>expression); break;
-        case 'function': valueGetter = <() => any>expression; break;
-        default: valueGetter = () => expression;
-      }
-
-      var watcher = new CollectionWatcher(valueGetter, apply);
+    watchCollection(expression: any, apply: (newValue?: any, oldValue?: any) => void): Function {
+      var watcher = new CollectionWatcher(this.generateValueGetter(expression), apply);
       this.watchers.push(watcher);
-
-      return () => {
-
-        this.watchers.splice(this.watchers.indexOf(watcher), 1);
-      };
+      return () => {this.watchers.splice(this.watchers.indexOf(watcher), 1)};
     }
 
     /**
@@ -254,6 +228,19 @@ module scope {
            primaryKey: string): JQuery {
 
       return RepeatWorker.generate(this, expression, valueKey, rowGenerator, primaryKey);
+    }
+
+    /**
+     * Generate getter to expression result.
+     * @param expression
+     * @returns {(): any}
+     */
+    private generateValueGetter(expression: any): () => any {
+      switch (typeof expression) {
+        case 'string': return Parser.generate(expression).bind(null, this);
+        case 'function': return <() => any>expression;
+        default: return () => expression;
+      }
     }
 
     /**
