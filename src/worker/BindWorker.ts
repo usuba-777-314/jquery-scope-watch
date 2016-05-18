@@ -18,7 +18,7 @@ module scope {
      * @param {JQuery} $target
      */
     static apply(scope: Scope, expression: any, $target: JQuery) {
-      scope.watch(expression, (v) => $target.text(v || ''));
+      scope.watch(expression, (v) => $target.text(v != null ? v : ''));
     }
   }
 }

@@ -18,7 +18,7 @@ module scope {
      * @param {string} attr
      */
     static apply(scope: Scope, expression: any, $target: JQuery, attr: string) {
-      scope.watch(expression, (v) => $target.attr(attr, v || null));
+      scope.watch(expression, (v) => $target.attr(attr, v !== undefined ? v : null));
     }
   }
 }
