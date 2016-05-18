@@ -14,7 +14,7 @@ module scope {
      * New value.
      * @member scope.Watcher#newValue
      * @private
-     * @type {any}
+     * @type {*}
      */
     private newValue: any;
 
@@ -22,7 +22,7 @@ module scope {
      * Old value.
      * @member scope.Watcher#oldValue
      * @private
-     * @type {any}
+     * @type {*}
      */
     private oldValue: any;
 

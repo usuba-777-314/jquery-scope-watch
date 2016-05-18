@@ -73,7 +73,7 @@ module scope {
      * Registers a apply callback to be executed the value changes.
      * @method scope.Scope.watch
      * @static
-     * @param {any} expression
+     * @param {*} expression
      * @param {(newValue: any, oldValue: any) => void} apply
      * @returns {Function} A deregistration function for this apply.
      */
@@ -88,7 +88,7 @@ module scope {
      * Shallow watch the properties of an object, and to applied.
      * @method scope.Scope.watchCollection
      * @static
-     * @param {any} expression
+     * @param {*} expression
      * @param {(newValue: any, oldValue: any) => void} apply
      * @returns {Function} A deregistration function for this apply.
      */
@@ -180,7 +180,7 @@ module scope {
     /**
      * Registers a apply callback to be executed the value changes.
      * @method scope.Scope#watch
-     * @param {any} expression
+     * @param {*} expression
      * @param {(newValue: any, oldValue: any) => void} apply
      * @returns {Function} A deregistration function for this apply.
      */
@@ -207,7 +207,7 @@ module scope {
      * Registers a apply callback to be executed the value changes.
      * Shallow watch the properties of an object, and to applied.
      * @method scope.Scope#watchCollection
-     * @param {any} expression
+     * @param {*} expression
      * @param {(newValue: any, oldValue: any) => void} apply
      * @returns {Function} A deregistration function for this apply.
      */
@@ -320,7 +320,7 @@ module scope {
     /**
      *
      * @method scope.Scope#repeat
-     * @param {any} expression
+     * @param {*} expression
      * @param {string} valueKey
      * @param {(s: Scope) => JQuery} rowGenerator
      * @param {string} primaryKey
@@ -331,7 +331,7 @@ module scope {
            rowGenerator: (s: Scope) => JQuery,
            primaryKey: string): JQuery {
 
-      return Repeater.generate(this, expression, valueKey, rowGenerator, primaryKey);
+      return RepeatWorker.generate(this, expression, valueKey, rowGenerator, primaryKey);
     }
 
     /**
@@ -339,7 +339,7 @@ module scope {
      * @method scope.Scope#parse
      * @private
      * @param {string} expression
-     * @returns {any} Value after Parsing.
+     * @returns {*} Value after Parsing.
      */
     private parse(expression: string): any {
 

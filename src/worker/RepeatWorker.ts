@@ -6,12 +6,12 @@ module scope {
 
   /**
    *
-   * @class scope.Repeater
+   * @class scope.RepeatWorker
    */
-  export class Repeater {
+  export class RepeatWorker {
     /**
      *
-     * @member scope.Repeater#startComment
+     * @member scope.RepeatWorker#startComment
      * @private
      * @type {Comment}
      */
@@ -19,21 +19,21 @@ module scope {
 
     /**
      *
-     * @member scope.Repeater#endComment
+     * @member scope.RepeatWorker#endComment
      * @private
      * @type {Comment}
      */
     private endComment: Comment;
 
     /**
-     * @member scope.Repeater#keys
+     * @member scope.RepeatWorker#keys
      * @private
      * @type {*[]}
      */
     private keys: any[] = [];
 
     /**
-     * @member scope.Repeater#rowMap
+     * @member scope.RepeatWorker#rowMap
      * @private
      * @type {RowMap}
      */
@@ -78,7 +78,7 @@ module scope {
                     rowGenerator: (s: Scope) => JQuery,
                     primaryKey?: string): JQuery {
 
-      var repeater = new Repeater(scope, expression, valueKey, rowGenerator, primaryKey);
+      var repeater = new RepeatWorker(scope, expression, valueKey, rowGenerator, primaryKey);
 
       return $([repeater.startComment, repeater.endComment]);
     }
@@ -210,7 +210,7 @@ module scope {
     /**
      * @method RowMap#get
      * @param {*} key
-     * @returns {T} value
+     * @returns {IRow} value
      */
     get(key: any): IRow {
       var index = this._values.map((o: IRowMappingObject) => o.key).indexOf(key);

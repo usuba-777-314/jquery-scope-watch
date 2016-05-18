@@ -9,7 +9,6 @@ declare module scope {
    * @interface
    */
   interface IWatcher {
-
     call();
   }
 }

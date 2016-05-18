@@ -14,7 +14,7 @@ module scope {
      * New value.
      * @member scope.Watcher#newValue
      * @private
-     * @type {any}
+     * @type {*}
      */
     private newValue: any;
 
@@ -22,7 +22,7 @@ module scope {
      * Old value.
      * @member scope.Watcher#oldValue
      * @private
-     * @type {any}
+     * @type {*}
      */
     private oldValue: any;
 
@@ -41,8 +41,8 @@ module scope {
      * @method scope.CollectionWatcher.copy
      * @static
      * @private
-     * @param {any} value
-     * @returns {any} Value after shallow copying.
+     * @param {*} value
+     * @returns {*} Value after shallow copying.
      */
     private static copy(value: any): any {
 
