@@ -8,6 +8,375 @@
  * @namespace
  */
 var scope;
+(function (scope_1) {
+    /**
+     * Watch of scope.
+     * @class scope.Scope
+     */
+    var Scope = (function () {
+        function Scope() {
+            /**
+             * Reference to the parent scope.
+             * @member scope.Scope#parent
+             * @type {scope.Scope}
+             */
+            this.parent = undefined;
+            /**
+             * Reference to child scopes.
+             * @member scope.Scope#children
+             * @type {scope.Scope}
+             */
+            this.children = [];
+            /**
+             * Reference to watchers.
+             * @member scope.Scope#watchers
+             * @private
+             * @type {Array}
+             */
+            this.watchers = [];
+            /**
+             * Reference to listeners.
+             * @member scope.Scope#listeners
+             * @private
+             * @type {{}}
+             */
+            this.listeners = {};
+            /**
+             * "true" after destroy method is called.
+             * "false" before that.
+             * @member scope.Scope#destroyed
+             * @private
+             * @type {boolean}
+             */
+            this.destroyed = false;
+        }
+        /**
+         * Generate a new child scope of the root scope.
+         * @method scope.Scope.generate
+         * @static
+         * @returns {scope.Scope}
+         */
+        Scope.generate = function () {
+            return Scope.root.generate();
+        };
+        /**
+         * If the values has been changed, it apply.
+         * @method scope.Scope.apply
+         * @static
+         */
+        Scope.apply = function () {
+            Scope.root.apply();
+        };
+        /**
+         * Generate a new child scope.
+         * @method scope.Scope#generate
+         * @returns {scope.Scope}
+         */
+        Scope.prototype.generate = function () {
+            var scope = Object.create(this);
+            scope.parent = this;
+            scope.children = [];
+            scope.watchers = [];
+            scope.listeners = [];
+            scope.destroyed = false;
+            this.children.push(scope);
+            return scope;
+        };
+        /**
+         * Registers a apply callback to be executed the value changes.
+         * @method scope.Scope#watch
+         * @param {*} expression
+         * @param {(newValue?: any, oldValue?: any) => void} apply
+         * @returns {Function} A deregistration function for this apply.
+         */
+        Scope.prototype.watch = function (expression, apply) {
+            var _this = this;
+            var watcher = new scope_1.Watcher(this.generateValueGetter(expression), apply);
+            this.watchers.push(watcher);
+            return function () { _this.watchers.splice(_this.watchers.indexOf(watcher), 1); };
+        };
+        /**
+         * Registers a apply callback to be executed the value changes.
+         * Shallow watch the properties of an object, and to applied.
+         * @method scope.Scope#watchCollection
+         * @param {*} expression
+         * @param {(newValue?: any, oldValue?: any) => void} apply
+         * @returns {Function} A deregistration function for this apply.
+         */
+        Scope.prototype.watchCollection = function (expression, apply) {
+            var _this = this;
+            var watcher = new scope_1.CollectionWatcher(this.generateValueGetter(expression), apply);
+            this.watchers.push(watcher);
+            return function () { _this.watchers.splice(_this.watchers.indexOf(watcher), 1); };
+        };
+        /**
+         * If the values has been changed, it apply.
+         * @method scope.Scope#apply
+         */
+        Scope.prototype.apply = function () {
+            if (this.destroyed)
+                return;
+            this.watchers.forEach(function (w) { return w.call(); });
+            this.children.forEach(function (s) { return s.apply(); });
+        };
+        /**
+         * Listens on events of a given type.
+         * @method scope.Scope#on
+         * @param {string} name
+         * @param {(args: *, argsN: *) => void} listener
+         * @returns {Function} A deregistration function for this apply.
+         */
+        Scope.prototype.on = function (name, listener) {
+            var _this = this;
+            if (!this.listeners[name])
+                this.listeners[name] = [];
+            this.listeners[name].push(listener);
+            return function () {
+                var index = _this.listeners[name].indexOf(listener);
+                if (index === -1)
+                    return;
+                _this.listeners[name].splice(_this.listeners[name].indexOf(listener), 1);
+            };
+        };
+        /**
+         * Notice an event 'name' to children scopes.
+         * @method scope.Scope#broadcast
+         * @param {string} name
+         * @param {*} args, argsN
+         */
+        Scope.prototype.broadcast = function (name) {
+            var args = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                args[_i - 1] = arguments[_i];
+            }
+            if (this.destroyed)
+                return;
+            if (this.listeners[name])
+                this.listeners[name].forEach(function (l) { return l.apply(null, args); });
+            this.children.forEach(function (s) { return s.broadcast(name, args); });
+        };
+        /**
+         * Notice an event 'name' to parent scopes.
+         * @method scope.Scope#emit
+         * @param {string} name
+         * @param {*} args, argsN
+         */
+        Scope.prototype.emit = function (name) {
+            var args = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                args[_i - 1] = arguments[_i];
+            }
+            if (this.destroyed)
+                return;
+            if (this.listeners[name])
+                this.listeners[name].forEach(function (l) { return l.apply(null, args); });
+            this.parent.emit(name, args);
+        };
+        /**
+         * Remove the current scope (and all of its children) from parent scope.
+         * @method scope.Scope#destory
+         */
+        Scope.prototype.destroy = function () {
+            if (this.destroyed)
+                return;
+            var destroy = function (scope) {
+                $.extend([], this.children).forEach(function (s) { return destroy(s); });
+                scope.destroyed = true;
+                if (scope.parent)
+                    scope.parent.children.splice(scope.parent.children.indexOf(scope), 1);
+                scope.parent = null;
+                scope.children = null;
+                scope.watchers = null;
+                scope.listeners = null;
+            };
+            this.broadcast('destroy');
+            destroy(this);
+            if (this === Scope.root)
+                Scope._root = undefined;
+        };
+        /**
+         * Bind value to DOM text.
+         * @param {*} expression
+         * @param {*} selector
+         */
+        Scope.prototype.bind = function (expression, selector) {
+            scope_1.BindWorker.apply(this, expression, $(selector));
+        };
+        /**
+         * Show DOM, if expression result is true.
+         * Otherwise hide DOM.
+         * @param {*} expression
+         * @param {*} selector
+         */
+        Scope.prototype.show = function (expression, selector) {
+            scope_1.ShowWorker.apply(this, expression, $(selector));
+        };
+        /**
+         * Hide DOM, if expression result is true.
+         * Otherwise show DOM.
+         * @param {*} expression
+         * @param {*} selector
+         */
+        Scope.prototype.hide = function (expression, selector) {
+            scope_1.HideWorker.apply(this, expression, $(selector));
+        };
+        /**
+         * Add class to DOM, if expression result is true.
+         * Otherwise remove class from DOM.
+         * @param {*} expression
+         * @param {*} selector
+         * @param {string} klass
+         */
+        Scope.prototype.klass = function (expression, selector, klass) {
+            scope_1.KlassWorker.apply(this, expression, $(selector), klass);
+        };
+        /**
+         * Bind value attr of DOM.
+         * @param {*} expression
+         * @param {*} selector
+         * @param {string} attr
+         */
+        Scope.prototype.attr = function (expression, selector, attr) {
+            scope_1.AttrWorker.apply(this, expression, $(selector), attr);
+        };
+        /**
+         * Call callback when click.
+         * @param {*} selector
+         * @param {string|Function} callback
+         */
+        Scope.prototype.click = function (selector, callback) {
+            scope_1.ClickWorker.apply(this, $(selector), callback);
+        };
+        /**
+         * Return InputWorker instance.
+         * Bind scope value to input value, and bind input value to scope value.
+         * @param {string} expression
+         * @param {*} selector
+         * @returns {InputWorker}
+         */
+        Scope.prototype.input = function (expression, selector) {
+            return scope_1.InputWorker.generate(this, expression, $(selector));
+        };
+        /**
+         * Return SelectWorker instance.
+         * Bind scope value to input value, and bind input value to scope value.
+         * @param {string} expression
+         * @param {*} selector
+         * @param {*} dataExpression
+         * @param {string} valueKey
+         * @param {string} labelKey
+         * @returns {SelectWorker}
+         */
+        Scope.prototype.select = function (expression, selector, dataExpression, valueKey, labelKey) {
+            return scope_1.SelectWorker.generate(this, expression, $(selector), dataExpression, valueKey, labelKey);
+        };
+        /**
+         * Call callback when submit.
+         * @param {*} selector
+         * @param {string|Function} callback
+         */
+        Scope.prototype.submit = function (selector, callback) {
+            scope_1.SubmitWorker.apply(this, $(selector), callback);
+        };
+        /**
+         *
+         * @method scope.Scope#repeat
+         * @param {*} expression
+         * @param {string} valueKey
+         * @param {(s: Scope) => JQuery} rowGenerator
+         * @param {string} primaryKey
+         * @returns {JQuery}
+         */
+        Scope.prototype.repeat = function (expression, valueKey, rowGenerator, primaryKey) {
+            return scope_1.RepeatWorker.generate(this, expression, valueKey, rowGenerator, primaryKey);
+        };
+        /**
+         * Generate getter to expression result.
+         * @param expression
+         * @returns {(): any}
+         */
+        Scope.prototype.generateValueGetter = function (expression) {
+            switch (typeof expression) {
+                case 'string': return scope_1.Parser.generate(expression).bind(null, this);
+                case 'function': return expression;
+                default: return function () { return expression; };
+            }
+        };
+        Object.defineProperty(Scope, "root", {
+            /**
+             * Reference to the root scope.
+             * @method scope.Scope.root
+             * @static
+             * @returns {scope.Scope}
+             */
+            get: function () {
+                return Scope._root || (Scope._root = new Scope());
+            },
+            enumerable: true,
+            configurable: true
+        });
+        return Scope;
+    }());
+    scope_1.Scope = Scope;
+})(scope || (scope = {}));
+/// <reference path="Scope.ts" />
+/**
+ * Namespace of the jquery-scope-watch.
+ * @namespace
+ */
+var scope;
+(function (scope) {
+    $.scope = scope.Scope;
+})(scope || (scope = {}));
+/**
+ * Namespace of the jquery-scope-watch.
+ * @namespace
+ */
+var scope;
+(function (scope_2) {
+    /**
+     * Parser for expression
+     * @class scope.Parser
+     */
+    var Parser = (function () {
+        function Parser() {
+        }
+        /**
+         * Generate parser instance.
+         * @param _expression
+         * @return {}
+         */
+        Parser.generate = function (_expression) {
+            var expression = Parser.compile(_expression);
+            var getter = function (scope) {
+                try {
+                    eval('var ' + Parser.SCOPE + ' = scope');
+                    return eval(expression);
+                }
+                catch (e) { }
+            };
+            var setter = function (scope, value) {
+                try {
+                    eval('var ' + Parser.SCOPE + ' = scope');
+                    return eval(expression + ' = value');
+                }
+                catch (e) { }
+            };
+            return $.extend(getter, { assign: setter });
+        };
+        Parser.compile = function (expression) {
+            return expression.replace(/[a-zA-Z$_][a-zA-Z$_0-9\.]*/g, function (str) { return Parser.SCOPE + '.' + str; });
+        };
+        Parser.SCOPE = 'scope';
+        return Parser;
+    }());
+    scope_2.Parser = Parser;
+})(scope || (scope = {}));
+/**
+ * Namespace of the jquery-scope-watch.
+ * @namespace
+ */
+var scope;
 (function (scope) {
     /**
      * Shallow watch the properties of an object, and to applied.
@@ -134,7 +503,7 @@ var scope;
  * @namespace
  */
 var scope;
-(function (scope_1) {
+(function (scope_3) {
     /**
      * Worker to bind value attr of DOM
      * @class scope.AttrWorker
@@ -156,14 +525,14 @@ var scope;
         };
         return AttrWorker;
     }());
-    scope_1.AttrWorker = AttrWorker;
+    scope_3.AttrWorker = AttrWorker;
 })(scope || (scope = {}));
 /**
  * Namespace of the jquery-scope-watch.
  * @namespace
  */
 var scope;
-(function (scope_2) {
+(function (scope_4) {
     /**
      * Worker to bind value to DOM text
      * @class scope.BindWorker
@@ -185,14 +554,14 @@ var scope;
         };
         return BindWorker;
     }());
-    scope_2.BindWorker = BindWorker;
+    scope_4.BindWorker = BindWorker;
 })(scope || (scope = {}));
 /**
  * Namespace of the jquery-scope-watch.
  * @namespace
  */
 var scope;
-(function (scope_3) {
+(function (scope_5) {
     /**
      * Worker to call callback where click
      * @class scope.ClickWorker
@@ -225,19 +594,19 @@ var scope;
          */
         ClickWorker.compile = function (scope, callback) {
             return typeof callback === 'string'
-                ? scope_3.Parser.generate(callback).bind(null, scope)
+                ? scope_5.Parser.generate(callback).bind(null, scope)
                 : callback;
         };
         return ClickWorker;
     }());
-    scope_3.ClickWorker = ClickWorker;
+    scope_5.ClickWorker = ClickWorker;
 })(scope || (scope = {}));
 /**
  * Namespace of the jquery-scope-watch.
  * @namespace
  */
 var scope;
-(function (scope_4) {
+(function (scope_6) {
     /**
      * Worker to hide DOM
      * @class scope.HideWorker
@@ -259,14 +628,14 @@ var scope;
         };
         return HideWorker;
     }());
-    scope_4.HideWorker = HideWorker;
+    scope_6.HideWorker = HideWorker;
 })(scope || (scope = {}));
 /**
  * Namespace of the jquery-scope-watch.
  * @namespace
  */
 var scope;
-(function (scope_5) {
+(function (scope_7) {
     /**
      * Worker to Bind scope value to input value, and bind input value to scope value
      * @class scope.InputWorker
@@ -316,7 +685,7 @@ var scope;
                     return;
                 _this.$input.val(newValue);
             });
-            var setter = scope_5.Parser.generate(this.expression).assign;
+            var setter = scope_7.Parser.generate(this.expression).assign;
             var inputCallback = function (event) {
                 if (!_this.isChanged(_this.$input.val()))
                     return;
@@ -335,7 +704,7 @@ var scope;
          */
         InputWorker.prototype.compile = function (callback) {
             return typeof callback === 'string'
-                ? scope_5.Parser.generate(callback).bind(null, this.scope)
+                ? scope_7.Parser.generate(callback).bind(null, this.scope)
                 : callback;
         };
         /**
@@ -353,14 +722,14 @@ var scope;
         };
         return InputWorker;
     }());
-    scope_5.InputWorker = InputWorker;
+    scope_7.InputWorker = InputWorker;
 })(scope || (scope = {}));
 /**
  * Namespace of the jquery-scope-watch.
  * @namespace
  */
 var scope;
-(function (scope_6) {
+(function (scope_8) {
     /**
      * Worker to toggle class of DOM
      * @class scope.KlassWorker
@@ -383,14 +752,14 @@ var scope;
         };
         return KlassWorker;
     }());
-    scope_6.KlassWorker = KlassWorker;
+    scope_8.KlassWorker = KlassWorker;
 })(scope || (scope = {}));
 /**
  * Namespace of the jquery-scope-watch.
  * @namespace
  */
 var scope;
-(function (scope_7) {
+(function (scope_9) {
     /**
      *
      * @class scope.RepeatWorker
@@ -520,7 +889,7 @@ var scope;
         };
         return RepeatWorker;
     }());
-    scope_7.RepeatWorker = RepeatWorker;
+    scope_9.RepeatWorker = RepeatWorker;
     /**
      * @class RowMap
      */
@@ -584,7 +953,7 @@ var scope;
  * @namespace
  */
 var scope;
-(function (scope_8) {
+(function (scope_10) {
     /**
      * Worker to Bind scope value to select value, and bind select value to scope value
      * @class scope.SelectWorker
@@ -653,7 +1022,7 @@ var scope;
                     return;
                 _this.$select.val(newValue);
             });
-            var setter = scope_8.Parser.generate(this.expression).assign;
+            var setter = scope_10.Parser.generate(this.expression).assign;
             var inputCallback = function (event) {
                 if (!_this.isChanged(_this.getSelectValue()))
                     return;
@@ -672,7 +1041,7 @@ var scope;
          */
         SelectWorker.prototype.compile = function (callback) {
             return typeof callback === 'string'
-                ? scope_8.Parser.generate(callback).bind(null, this.scope)
+                ? scope_10.Parser.generate(callback).bind(null, this.scope)
                 : callback;
         };
         /**
@@ -705,14 +1074,14 @@ var scope;
         SelectWorker.OPTION_VALUE_KEY = '_select_option_value';
         return SelectWorker;
     }());
-    scope_8.SelectWorker = SelectWorker;
+    scope_10.SelectWorker = SelectWorker;
 })(scope || (scope = {}));
 /**
  * Namespace of the jquery-scope-watch.
  * @namespace
  */
 var scope;
-(function (scope_9) {
+(function (scope_11) {
     /**
      * Worker to show DOM
      * @class scope.ShowWorker
@@ -734,14 +1103,14 @@ var scope;
         };
         return ShowWorker;
     }());
-    scope_9.ShowWorker = ShowWorker;
+    scope_11.ShowWorker = ShowWorker;
 })(scope || (scope = {}));
 /**
  * Namespace of the jquery-scope-watch.
  * @namespace
  */
 var scope;
-(function (scope_10) {
+(function (scope_12) {
     /**
      * Worker to call callback where submit
      * @class scope.SubmitWorker
@@ -775,379 +1144,10 @@ var scope;
          */
         SubmitWorker.compile = function (scope, callback) {
             return typeof callback === 'string'
-                ? scope_10.Parser.generate(callback).bind(null, scope)
+                ? scope_12.Parser.generate(callback).bind(null, scope)
                 : callback;
         };
         return SubmitWorker;
     }());
-    scope_10.SubmitWorker = SubmitWorker;
-})(scope || (scope = {}));
-/**
- * Namespace of the jquery-scope-watch.
- * @namespace
- */
-var scope;
-(function (scope_11) {
-    /**
-     * Watch of scope.
-     * @class scope.Scope
-     */
-    var Scope = (function () {
-        function Scope() {
-            /**
-             * Reference to the parent scope.
-             * @member scope.Scope#parent
-             * @type {scope.Scope}
-             */
-            this.parent = undefined;
-            /**
-             * Reference to child scopes.
-             * @member scope.Scope#children
-             * @type {scope.Scope}
-             */
-            this.children = [];
-            /**
-             * Reference to watchers.
-             * @member scope.Scope#watchers
-             * @private
-             * @type {Array}
-             */
-            this.watchers = [];
-            /**
-             * Reference to listeners.
-             * @member scope.Scope#listeners
-             * @private
-             * @type {{}}
-             */
-            this.listeners = {};
-            /**
-             * "true" after destroy method is called.
-             * "false" before that.
-             * @member scope.Scope#destroyed
-             * @private
-             * @type {boolean}
-             */
-            this.destroyed = false;
-        }
-        /**
-         * Generate a new child scope of the root scope.
-         * @method scope.Scope.generate
-         * @static
-         * @returns {scope.Scope}
-         */
-        Scope.generate = function () {
-            return Scope.root.generate();
-        };
-        /**
-         * If the values has been changed, it apply.
-         * @method scope.Scope.apply
-         * @static
-         */
-        Scope.apply = function () {
-            Scope.root.apply();
-        };
-        /**
-         * Generate a new child scope.
-         * @method scope.Scope#generate
-         * @returns {scope.Scope}
-         */
-        Scope.prototype.generate = function () {
-            var scope = Object.create(this);
-            scope.parent = this;
-            scope.children = [];
-            scope.watchers = [];
-            scope.listeners = [];
-            scope.destroyed = false;
-            this.children.push(scope);
-            return scope;
-        };
-        /**
-         * Registers a apply callback to be executed the value changes.
-         * @method scope.Scope#watch
-         * @param {*} expression
-         * @param {(newValue?: any, oldValue?: any) => void} apply
-         * @returns {Function} A deregistration function for this apply.
-         */
-        Scope.prototype.watch = function (expression, apply) {
-            var _this = this;
-            var watcher = new scope_11.Watcher(this.generateValueGetter(expression), apply);
-            this.watchers.push(watcher);
-            return function () { _this.watchers.splice(_this.watchers.indexOf(watcher), 1); };
-        };
-        /**
-         * Registers a apply callback to be executed the value changes.
-         * Shallow watch the properties of an object, and to applied.
-         * @method scope.Scope#watchCollection
-         * @param {*} expression
-         * @param {(newValue?: any, oldValue?: any) => void} apply
-         * @returns {Function} A deregistration function for this apply.
-         */
-        Scope.prototype.watchCollection = function (expression, apply) {
-            var _this = this;
-            var watcher = new scope_11.CollectionWatcher(this.generateValueGetter(expression), apply);
-            this.watchers.push(watcher);
-            return function () { _this.watchers.splice(_this.watchers.indexOf(watcher), 1); };
-        };
-        /**
-         * If the values has been changed, it apply.
-         * @method scope.Scope#apply
-         */
-        Scope.prototype.apply = function () {
-            if (this.destroyed)
-                return;
-            this.watchers.forEach(function (w) { return w.call(); });
-            this.children.forEach(function (s) { return s.apply(); });
-        };
-        /**
-         * Listens on events of a given type.
-         * @method scope.Scope#on
-         * @param {string} name
-         * @param {(args: *, argsN: *) => void} listener
-         * @returns {Function} A deregistration function for this apply.
-         */
-        Scope.prototype.on = function (name, listener) {
-            var _this = this;
-            if (!this.listeners[name])
-                this.listeners[name] = [];
-            this.listeners[name].push(listener);
-            return function () {
-                var index = _this.listeners[name].indexOf(listener);
-                if (index === -1)
-                    return;
-                _this.listeners[name].splice(_this.listeners[name].indexOf(listener), 1);
-            };
-        };
-        /**
-         * Notice an event 'name' to children scopes.
-         * @method scope.Scope#broadcast
-         * @param {string} name
-         * @param {*} args, argsN
-         */
-        Scope.prototype.broadcast = function (name) {
-            var args = [];
-            for (var _i = 1; _i < arguments.length; _i++) {
-                args[_i - 1] = arguments[_i];
-            }
-            if (this.destroyed)
-                return;
-            if (this.listeners[name])
-                this.listeners[name].forEach(function (l) { return l.apply(null, args); });
-            this.children.forEach(function (s) { return s.broadcast(name, args); });
-        };
-        /**
-         * Notice an event 'name' to parent scopes.
-         * @method scope.Scope#emit
-         * @param {string} name
-         * @param {*} args, argsN
-         */
-        Scope.prototype.emit = function (name) {
-            var args = [];
-            for (var _i = 1; _i < arguments.length; _i++) {
-                args[_i - 1] = arguments[_i];
-            }
-            if (this.destroyed)
-                return;
-            if (this.listeners[name])
-                this.listeners[name].forEach(function (l) { return l.apply(null, args); });
-            this.parent.emit(name, args);
-        };
-        /**
-         * Remove the current scope (and all of its children) from parent scope.
-         * @method scope.Scope#destory
-         */
-        Scope.prototype.destroy = function () {
-            if (this.destroyed)
-                return;
-            var destroy = function (scope) {
-                $.extend([], this.children).forEach(function (s) { return destroy(s); });
-                scope.destroyed = true;
-                if (scope.parent)
-                    scope.parent.children.splice(scope.parent.children.indexOf(scope), 1);
-                scope.parent = null;
-                scope.children = null;
-                scope.watchers = null;
-                scope.listeners = null;
-            };
-            this.broadcast('destroy');
-            destroy(this);
-            if (this === Scope.root)
-                Scope._root = undefined;
-        };
-        /**
-         * Bind value to DOM text.
-         * @param {*} expression
-         * @param {*} selector
-         */
-        Scope.prototype.bind = function (expression, selector) {
-            scope_11.BindWorker.apply(this, expression, $(selector));
-        };
-        /**
-         * Show DOM, if expression result is true.
-         * Otherwise hide DOM.
-         * @param {*} expression
-         * @param {*} selector
-         */
-        Scope.prototype.show = function (expression, selector) {
-            scope_11.ShowWorker.apply(this, expression, $(selector));
-        };
-        /**
-         * Hide DOM, if expression result is true.
-         * Otherwise show DOM.
-         * @param {*} expression
-         * @param {*} selector
-         */
-        Scope.prototype.hide = function (expression, selector) {
-            scope_11.HideWorker.apply(this, expression, $(selector));
-        };
-        /**
-         * Add class to DOM, if expression result is true.
-         * Otherwise remove class from DOM.
-         * @param {*} expression
-         * @param {*} selector
-         * @param {string} klass
-         */
-        Scope.prototype.klass = function (expression, selector, klass) {
-            scope_11.KlassWorker.apply(this, expression, $(selector), klass);
-        };
-        /**
-         * Bind value attr of DOM.
-         * @param {*} expression
-         * @param {*} selector
-         * @param {string} attr
-         */
-        Scope.prototype.attr = function (expression, selector, attr) {
-            scope_11.AttrWorker.apply(this, expression, $(selector), attr);
-        };
-        /**
-         * Call callback when click.
-         * @param {*} selector
-         * @param {string|Function} callback
-         */
-        Scope.prototype.click = function (selector, callback) {
-            scope_11.ClickWorker.apply(this, $(selector), callback);
-        };
-        /**
-         * Return InputWorker instance.
-         * Bind scope value to input value, and bind input value to scope value.
-         * @param {string} expression
-         * @param {*} selector
-         * @returns {InputWorker}
-         */
-        Scope.prototype.input = function (expression, selector) {
-            return scope_11.InputWorker.generate(this, expression, $(selector));
-        };
-        /**
-         * Return SelectWorker instance.
-         * Bind scope value to input value, and bind input value to scope value.
-         * @param {string} expression
-         * @param {*} selector
-         * @param {*} dataExpression
-         * @param {string} valueKey
-         * @param {string} labelKey
-         * @returns {SelectWorker}
-         */
-        Scope.prototype.select = function (expression, selector, dataExpression, valueKey, labelKey) {
-            return scope_11.SelectWorker.generate(this, expression, $(selector), dataExpression, valueKey, labelKey);
-        };
-        /**
-         * Call callback when submit.
-         * @param {*} selector
-         * @param {string|Function} callback
-         */
-        Scope.prototype.submit = function (selector, callback) {
-            scope_11.SubmitWorker.apply(this, $(selector), callback);
-        };
-        /**
-         *
-         * @method scope.Scope#repeat
-         * @param {*} expression
-         * @param {string} valueKey
-         * @param {(s: Scope) => JQuery} rowGenerator
-         * @param {string} primaryKey
-         * @returns {JQuery}
-         */
-        Scope.prototype.repeat = function (expression, valueKey, rowGenerator, primaryKey) {
-            return scope_11.RepeatWorker.generate(this, expression, valueKey, rowGenerator, primaryKey);
-        };
-        /**
-         * Generate getter to expression result.
-         * @param expression
-         * @returns {(): any}
-         */
-        Scope.prototype.generateValueGetter = function (expression) {
-            switch (typeof expression) {
-                case 'string': return scope_11.Parser.generate(expression).bind(null, this);
-                case 'function': return expression;
-                default: return function () { return expression; };
-            }
-        };
-        Object.defineProperty(Scope, "root", {
-            /**
-             * Reference to the root scope.
-             * @method scope.Scope.root
-             * @static
-             * @returns {scope.Scope}
-             */
-            get: function () {
-                return Scope._root || (Scope._root = new Scope());
-            },
-            enumerable: true,
-            configurable: true
-        });
-        return Scope;
-    }());
-    scope_11.Scope = Scope;
-})(scope || (scope = {}));
-/// <reference path="Scope.ts" />
-/**
- * Namespace of the jquery-scope-watch.
- * @namespace
- */
-var scope;
-(function (scope) {
-    $.scope = scope.Scope;
-})(scope || (scope = {}));
-/**
- * Namespace of the jquery-scope-watch.
- * @namespace
- */
-var scope;
-(function (scope_12) {
-    /**
-     * Parser for expression
-     * @class scope.Parser
-     */
-    var Parser = (function () {
-        function Parser() {
-        }
-        /**
-         * Generate parser instance.
-         * @param _expression
-         * @return {}
-         */
-        Parser.generate = function (_expression) {
-            var expression = Parser.compile(_expression);
-            var getter = function (scope) {
-                try {
-                    eval('var ' + Parser.SCOPE + ' = scope');
-                    return eval(expression);
-                }
-                catch (e) { }
-            };
-            var setter = function (scope, value) {
-                try {
-                    eval('var ' + Parser.SCOPE + ' = scope');
-                    return eval(expression + ' = value');
-                }
-                catch (e) { }
-            };
-            return $.extend(getter, { assign: setter });
-        };
-        Parser.compile = function (expression) {
-            return expression.replace(/[a-zA-Z$_][a-zA-Z$_0-9\.]*/g, function (str) { return Parser.SCOPE + '.' + str; });
-        };
-        Parser.SCOPE = 'scope';
-        return Parser;
-    }());
-    scope_12.Parser = Parser;
+    scope_12.SubmitWorker = SubmitWorker;
 })(scope || (scope = {}));
