@@ -143,7 +143,7 @@ module scope {
         var labelKey = this.labelKey ? 'option.' + this.labelKey : 'option';
         scope.attr(valueKey, $option, 'value');
         scope.attr(labelKey, $option, 'label');
-        scope.watch(valueKey, (v: any) => $option.data(SelectWorker.OPTION_VALUE_KEY, v || null));
+        scope.watch(valueKey, (v: any) => $option.data(SelectWorker.OPTION_VALUE_KEY, v !== undefined ? v : null));
         return $option;
       }, this.valueKey).appendTo(this.$select);
 
