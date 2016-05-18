@@ -60,10 +60,7 @@ $(function() {
   var template = $('#list-row-template').html();
   listScope.repeat('users', 'user', function (scope) {
     var $row = $(template);
-    scope.watch('user.age < 20', function (childFlg) {
-      if (childFlg) $row.addClass('child');
-      else $row.removeClass('child');
-    });
+    scope.klass('user.age < 20', $row, 'child');
     scope.bind('user.id', $row.find('.id'));
     scope.bind('user.name', $row.find('.name'));
     scope.bind('user.age', $row.find('.age'));

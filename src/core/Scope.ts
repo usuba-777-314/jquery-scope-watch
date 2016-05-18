@@ -243,6 +243,17 @@ module scope {
     }
 
     /**
+     * Add class to DOM, if expression result is true.
+     * Otherwise remove class from DOM.
+     * @param {*} expression
+     * @param {*} selector
+     * @param {string} klass
+     */
+    klass(expression: any, selector: any, klass: string) {
+      KlassWorker.apply(this, expression, $(selector), klass);
+    }
+
+    /**
      *
      * @method scope.Scope#repeat
      * @param {*} expression
