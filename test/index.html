@@ -1,17 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Test</title>
+  <meta charset="UTF-8">
+  <title>Test</title>
+  <link rel="stylesheet" type="text/css" href="index.css">
 </head>
 <body>
-
 <h1>Users (Test jquery-scope-watch.js)</h1>
 
-<div id="app"></div>
+<div id="list-view">
+  <button class="new-user">New</button>
+
+  <p class="not-found-message">Users are not found.</p>
+  <table id="list" border="1">
+    <tbody>
+      <tr>
+        <th>Id</th>
+        <th>Name</th>
+        <th>Age</th>
+        <th></th>
+      </tr>
+
+      <script type="text/html" id="list-row-template">
+        <tr>
+          <td class="id"><!-- id --></td>
+          <td class="name"><!-- name --></td>
+          <td class="age"><!-- age --></td>
+          <td>
+            <button class="show-user">Show</button>
+            <button class="edit-user">Edit</button>
+            <button class="delete-user">Delete</button>
+          </td>
+        </tr>
+      </script>
+    </tbody>
+  </table>
+</div>
+
+<div id="show-view">
+  <dl>
+    <dt>Id</dt>
+    <dd class="id"><!-- id --></dd>
+    <dt>Name</dt>
+    <dd class="name"><!-- name --></dd>
+    <dt>Age</dt>
+    <dd class="age"><!-- age --></dd>
+    <dt>Memo</dt>
+    <dd class="memo"><pre><!-- memo --></pre></dd>
+  </dl>
+</div>
+
+<div id="new-view">
+  <form>
+    <dl>
+      <dt><label for="new-name">Name</label></dt>
+      <dd><input id="new-name" class="name" type="text"></dd>
+      <dt><label for="new-age">Age</label></dt>
+      <dd><input id="new-age" class="age" type="number"></dd>
+      <dt><label for="new-memo">Memo</label></dt>
+      <dd><textarea id="new-memo" class="memo"></textarea></dd>
+    </dl>
+    <button type="submit">Create</button>
+  </form>
+</div>
+
+<div id="edit-view">
+  <form>
+    <dl>
+      <dt>Id</dt>
+      <dd class="id"><!-- id --></dd>
+      <dt><label for="edit-name">Name</label></dt>
+      <dd><input id="edit-name" class="name" type="text"></dd>
+      <dt><label for="edit-age">Age</label></dt>
+      <dd><input id="edit-age" class="age" type="number"></dd>
+      <dt><label for="edit-memo">Memo</label></dt>
+      <dd><textarea id="edit-memo" class="memo"></textarea></dd>
+    </dl>
+    <button type="submit">Update</button>
+  </form>
+</div>
 
 <script type="text/javascript" src="/bower_components/jquery/dist/jquery.min.js"></script>
 <script type="text/javascript" src="/release/jquery-scope-watch.js"></script>
+<script type="text/javascript" src="user.js"></script>
 <script type="text/javascript" src="index.js"></script>
 </body>
 </html>
