@@ -32,7 +32,7 @@ module scope {
      * @param {(newValue: any, oldValue: any) => void} apply
      */
     constructor(private valueGetter: () => any,
-                private apply: (newValue: any, oldValue: any) => void) {
+                private apply?: (newValue: any, oldValue: any) => void) {
       this.newValue = NaN;
       this.oldValue = NaN;
     }

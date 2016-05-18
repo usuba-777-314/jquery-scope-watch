@@ -106,7 +106,7 @@ module scope {
      * @param {(newValue?: any, oldValue?: any) => void} apply
      * @returns {Function} A deregistration function for this apply.
      */
-    watch(expression: any, apply: (newValue?: any, oldValue?: any) => void): Function {
+    watch(expression: any, apply?: (newValue?: any, oldValue?: any) => void): Function {
       var watcher = new Watcher(this.generateValueGetter(expression), apply);
       this.watchers.push(watcher);
       return () => {this.watchers.splice(this.watchers.indexOf(watcher), 1)};
@@ -120,7 +120,7 @@ module scope {
      * @param {(newValue?: any, oldValue?: any) => void} apply
      * @returns {Function} A deregistration function for this apply.
      */
-    watchCollection(expression: any, apply: (newValue?: any, oldValue?: any) => void): Function {
+    watchCollection(expression: any, apply?: (newValue?: any, oldValue?: any) => void): Function {
       var watcher = new CollectionWatcher(this.generateValueGetter(expression), apply);
       this.watchers.push(watcher);
       return () => {this.watchers.splice(this.watchers.indexOf(watcher), 1)};

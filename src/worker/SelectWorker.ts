@@ -119,14 +119,26 @@ module scope {
     }
 
     /**
-     * Initialize "input event/watch event".
-     * Bind scope value to input value, and bind input value to scope value.
+     * Initialize.
      * @private
      * @method scope.SelectWorker#init
      */
     private init() {
+      this.render();
+      this.bind();
+    }
+
+    /**
+     * Render options.
+     * @private
+     * @method scope.SelectWorker#initRender
+     */
+    private render() {
       this.scope.repeat(this.dataExpression, 'option', (scope: Scope) => {
-        var $option = $('<option>');
+        var $option = $('<option>').attr({
+          value: this.valueKey != null ? scope['option'][this.valueKey] : scope['option'],
+          label: this.labelKey != null ? scope['option'][this.labelKey] : scope['option']
+        });
         var valueKey = this.valueKey ? 'option.' + this.valueKey : 'option';
         var labelKey = this.labelKey ? 'option.' + this.labelKey : 'option';
         scope.attr(valueKey, $option, 'value');
@@ -135,6 +147,17 @@ module scope {
         return $option;
       }, this.valueKey).appendTo(this.$select);
 
+      this.scope.watch(() => {
+        if (this.value !== this.getSelectValue()) this.$select.val(this.value);
+      });
+    }
+
+    /**
+     * Bind scope value to input value, and bind input value to scope value.
+     * @private
+     * @method scope.SelectWorker#bind
+     */
+    private bind() {
       this.scope.watch(this.expression, (newValue: any) => {
         if (!this.isChanged(newValue)) return;
         this.$select.val(newValue);
