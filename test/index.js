@@ -54,14 +54,8 @@ $(function() {
     $.scope.apply();
   });
 
-  listScope.watch('!!users.length', function (existFlg) {
-    if (existFlg) $('#list-view .not-found-message').hide();
-    else $('#list-view .not-found-message').show();
-  });
-  listScope.watch('!!users.length', function (existFlg) {
-    if (existFlg) $('#list-view table').show();
-    else $('#list-view table').hide();
-  });
+  listScope.hide('!!users.length', '#list-view .not-found-message');
+  listScope.show('!!users.length', '#list-view table');
 
   var template = $('#list-row-template').html();
   listScope.repeat('users', 'user', function (scope) {
@@ -88,19 +82,13 @@ $(function() {
     return $row;
   }, 'id').appendTo('#list-view table');
 
-  showScope.watch('mode === MODE.SHOW', function (showFlg) {
-    if (showFlg) $('#show-view').show();
-    else $('#show-view').hide();
-  });
+  showScope.show('mode === MODE.SHOW', '#show-view');
   showScope.bind('user.id', '#show-view .id');
   showScope.bind('user.name', '#show-view .name');
   showScope.bind('user.age', '#show-view .age');
   showScope.bind('user.memo', '#show-view .memo pre');
 
-  newScope.watch('mode === MODE.NEW', function (showFlg) {
-    if (showFlg) $('#new-view').show();
-    else $('#new-view').hide();
-  });
+  newScope.show('mode === MODE.NEW', '#new-view');
   $('#new-view form')
     .on('submit', function(e) {
       e.preventDefault();
@@ -123,10 +111,7 @@ $(function() {
     $.scope.apply();
   });
 
-  editScope.watch('mode === MODE.EDIT', function (showFlg) {
-    if (showFlg) $('#edit-view').show();
-    else $('#edit-view').hide();
-  });
+  editScope.show('mode === MODE.EDIT', '#edit-view');
   $('#edit-view form')
     .on('submit', function(e) {
       e.preventDefault();

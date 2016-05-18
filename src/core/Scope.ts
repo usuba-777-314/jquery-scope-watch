@@ -221,6 +221,27 @@ module scope {
     bind(expression: any, selector: any) {
       BindWorker.apply(this, expression, $(selector));
     }
+
+    /**
+     * Show DOM, if expression result is true.
+     * Otherwise hide DOM.
+     * @param {*} expression
+     * @param {*} selector
+     */
+    show(expression: any, selector: any) {
+      ShowWorker.apply(this, expression, $(selector));
+    }
+
+    /**
+     * Hide DOM, if expression result is true.
+     * Otherwise show DOM.
+     * @param {*} expression
+     * @param {*} selector
+     */
+    hide(expression: any, selector: any) {
+      HideWorker.apply(this, expression, $(selector));
+    }
+
     /**
      *
      * @method scope.Scope#repeat
