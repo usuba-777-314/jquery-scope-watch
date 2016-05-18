@@ -11,6 +11,7 @@
 <div id="conditions-view">
   <label>Name: <input class="name" type="text"></label>
   <label>Age: <input class="age" type="number"></label>
+  <label>Language: <select class="language"><option></option></select></label>
 </div>
 
 <div id="list-view">
@@ -21,6 +22,7 @@
         <th>Id</th>
         <th>Name</th>
         <th>Age</th>
+        <th>Language</th>
         <th></th>
       </tr>
 
@@ -29,6 +31,7 @@
           <td class="id"><!-- id --></td>
           <td class="name"><!-- name --></td>
           <td class="age"><!-- age --></td>
+          <td class="language"><!-- language --></td>
           <td>
             <button class="show-user">Show</button>
             <button class="edit-user">Edit</button>
@@ -50,6 +53,8 @@
     <dd class="name"><!-- name --></dd>
     <dt>Age</dt>
     <dd class="age"><!-- age --></dd>
+    <dt>Language</dt>
+    <dd class="language"><!-- language --></dd>
     <dt>Memo</dt>
     <dd class="memo"><pre><!-- memo --></pre></dd>
   </dl>
@@ -62,6 +67,8 @@
       <dd><input id="new-name" class="name" type="text"></dd>
       <dt><label for="new-age">Age</label></dt>
       <dd><input id="new-age" class="age" type="number"></dd>
+      <dt><label for="new-language">Language</label></dt>
+      <dd><select id="new-language" class="language"><option></option></select></dd>
       <dt><label for="new-memo">Memo</label></dt>
       <dd><textarea id="new-memo" class="memo"></textarea></dd>
     </dl>
@@ -78,6 +85,8 @@
       <dd><input id="edit-name" class="name" type="text"></dd>
       <dt><label for="edit-age">Age</label></dt>
       <dd><input id="edit-age" class="age" type="number"></dd>
+      <dt><label for="edit-language">Language</label></dt>
+      <dd><select id="edit-language" class="language"><option></option></select></dd>
       <dt><label for="edit-memo">Memo</label></dt>
       <dd><textarea id="edit-memo" class="memo"></textarea></dd>
     </dl>
@@ -88,6 +97,7 @@
 <script type="text/javascript" src="/bower_components/jquery/dist/jquery.min.js"></script>
 <script type="text/javascript" src="/release/jquery-scope-watch.js"></script>
 <script type="text/javascript" src="user.js"></script>
+<script type="text/javascript" src="language.js"></script>
 <script type="text/javascript" src="index.js"></script>
 </body>
 </html>

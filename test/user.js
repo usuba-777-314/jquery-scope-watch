@@ -6,6 +6,7 @@ window.User = (function() {
     this.id = param.id;
     this.name = param.name;
     this.age = param.age;
+    this.languageId = param.languageId;
     this.memo = param.memo;
   }
 
@@ -19,8 +20,9 @@ window.User = (function() {
     var conditions = _conditions || {};
     return User.data
       .filter(function(d) {return !!d})
-      .filter(function(d) {return conditions.name ? d.name.indexOf(conditions.name) != -1 : true})
-      .filter(function(d) {return conditions.age ? d.age == conditions.age : true})
+      .filter(function(d) {return !conditions.name || d.name.indexOf(conditions.name) != -1})
+      .filter(function(d) {return !conditions.age || d.age == conditions.age})
+      .filter(function(d) {return !conditions.languageId || d.languageId == conditions.languageId})
       .map(function (d) {return new User(d)})
       .sort(function(a, b) {return b.age - a.age});
   };
@@ -31,6 +33,7 @@ window.User = (function() {
       id: this.id,
       name: this.name,
       age: this.age,
+      languageId: this.languageId,
       memo: this.memo
     });
     return this;
@@ -41,6 +44,7 @@ window.User = (function() {
       id: this.id,
       name: this.name,
       age: this.age,
+      languageId: this.languageId,
       memo: this.memo
     };
 
@@ -51,6 +55,13 @@ window.User = (function() {
     User.data[this.id - 1] = undefined;
     return this;
   };
+
+  Object.defineProperty(User.prototype, 'language', {
+    get: function() {
+      return this.languageId != null ? Language.get(this.languageId) : undefined;
+    },
+    enumerable: true
+  });
 
   return User;
 })();

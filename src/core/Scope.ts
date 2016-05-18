@@ -254,6 +254,16 @@ module scope {
     }
 
     /**
+     * Bind value attr of DOM.
+     * @param {*} expression
+     * @param {*} selector
+     * @param {string} attr
+     */
+    attr(expression: any, selector: any, attr: string) {
+      KlassWorker.apply(this, expression, $(selector), attr);
+    }
+
+    /**
      * Call callback when click.
      * @param {*} selector
      * @param {string|Function} callback
@@ -265,12 +275,27 @@ module scope {
     /**
      * Return InputWorker instance.
      * Bind scope value to input value, and bind input value to scope value.
-     * @param expression
-     * @param selector
+     * @param {string} expression
+     * @param {*} selector
      * @returns {InputWorker}
      */
     input(expression: string, selector: any): InputWorker {
       return InputWorker.generate(this, expression, $(selector));
+    }
+
+    /**
+     * Return SelectWorker instance.
+     * Bind scope value to input value, and bind input value to scope value.
+     * @param {string} expression
+     * @param {*} selector
+     * @param {*} dataExpression
+     * @param {string} valueKey
+     * @param {string} labelKey
+     * @returns {SelectWorker}
+     */
+    select(expression: string, selector: any,
+           dataExpression: any, valueKey?: string, labelKey?: string): SelectWorker {
+      return SelectWorker.generate(this, expression, $(selector), dataExpression, valueKey, labelKey);
     }
 
     /**
