@@ -70,35 +70,6 @@ module scope {
     }
 
     /**
-     * Registers a apply callback to be executed the value changes.
-     * @method scope.Scope.watch
-     * @static
-     * @param {*} expression
-     * @param {(newValue: any, oldValue: any) => void} apply
-     * @returns {Function} A deregistration function for this apply.
-     */
-    static watch(expression: any,
-                 apply: (newValue: any, oldValue: any) => void): Function {
-
-      return Scope.root.watch(expression, apply);
-    }
-
-    /**
-     * Registers a apply callback to be executed the value changes.
-     * Shallow watch the properties of an object, and to applied.
-     * @method scope.Scope.watchCollection
-     * @static
-     * @param {*} expression
-     * @param {(newValue: any, oldValue: any) => void} apply
-     * @returns {Function} A deregistration function for this apply.
-     */
-    static watchCollection(expression: any,
-                           apply: (newValue: any, oldValue: any) => void): Function {
-
-      return Scope.root.watchCollection(expression, apply);
-    }
-
-    /**
      * If the values has been changed, it apply.
      * @method scope.Scope.apply
      * @static
@@ -106,55 +77,6 @@ module scope {
     static apply() {
 
       Scope.root.apply();
-    }
-
-    /**
-     * Listens on events of a given type.
-     * @method scope.Scope#on
-     * @static
-     * @param {string} name
-     * @param {(args: *, argsN: *) => void} listener
-     * @returns {Function} A deregistration function for this apply.
-     */
-    static on(name: string, listener: (...args: any[]) => void): Function {
-
-      return Scope.root.on(name, listener);
-    }
-
-    /**
-     * Notice an event 'name' to children scopes.
-     * @method scope.Scope#broadcast
-     * @param {string} name
-     * @param {*} srcArgs, srcArgsN
-     */
-    static broadcast(name: string, ...srcArgs: any[]) {
-
-      var args = [name];
-      srcArgs.forEach((a: any) => args.push(a));
-      Scope.root.broadcast.apply(Scope.root, srcArgs);
-    }
-
-    /**
-     * Notice an event 'name' to parent scopes.
-     * @method scope.Scope#emit
-     * @param {string} name
-     * @param {*} srcArgs, srcArgsN
-     */
-    static emit(name: string, ...srcArgs: any[]) {
-
-      var args = [name];
-      srcArgs.forEach((a: any) => args.push(a));
-      Scope.root.emit.apply(Scope.root, srcArgs);
-    }
-
-    /**
-     * Remove all scopes.
-     * @method scope.Scope.destroy
-     * @static
-     */
-    static destroy() {
-
-      Scope.root.destroy();
     }
 
     /**
@@ -355,18 +277,7 @@ module scope {
      * @returns {scope.Scope}
      */
     static get root(): Scope {
-
       return Scope._root || (Scope._root = new Scope());
-    }
-
-    /**
-     * Reference to the root scope.
-     * @method scope.Scope#root
-     * @returns {scope.Scope}
-     */
-    get root(): Scope {
-
-      return Scope.root;
     }
   }
 }
