@@ -263,6 +263,17 @@ module scope {
     }
 
     /**
+     * Return InputWorker instance.
+     * Bind scope value to input value, and bind input value to scope value.
+     * @param expression
+     * @param selector
+     * @returns {InputWorker}
+     */
+    input(expression: string, selector: any): InputWorker {
+      return InputWorker.generate(this, expression, $(selector));
+    }
+
+    /**
      * Call callback when submit.
      * @param {*} selector
      * @param {string|Function} callback

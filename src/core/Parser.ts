@@ -17,12 +17,19 @@ module scope {
      */
     public static generate(_expression: string): IParser {
       var expression = Parser.compile(_expression);
-      return (scope: Scope): any => {
+      var getter = (scope: Scope): any => {
         try {
           eval('var ' + Parser.SCOPE + ' = scope');
           return eval(expression);
         } catch (e) {/* Kill exception */}
-      }
+      };
+      var setter = (scope: Scope, value: any) => {
+        try {
+          eval('var ' + Parser.SCOPE + ' = scope');
+          return eval(expression + ' = value');
+        } catch (e) {/* Kill exception */}
+      };
+      return $.extend(getter, {assign: setter});
     }
     
     private static compile(expression: string): string {

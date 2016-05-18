@@ -1,20 +1,21 @@
 $(function() {
   window.appScope = $.scope.generate();
+  var conditionsScope = appScope.generate();
   var listScope = appScope.generate();
   var showScope = appScope.generate();
   var newScope = appScope.generate();
   var editScope = appScope.generate();
 
-  appScope.MODE = {
-    NONE: 'none',
-    SHOW: 'show',
-    NEW: 'new',
-    EDIT: 'edit'
-  };
+  appScope.MODE = {NONE: 'none', SHOW: 'show', NEW: 'new', EDIT: 'edit'};
 
   appScope.init = function() {
+    conditionsScope.conditions = {};
     appScope.mode = appScope.MODE.NONE;
     listScope.users = User.query();
+  };
+
+  appScope.search = function() {
+    listScope.users = User.query(conditionsScope.conditions);
   };
 
   appScope.showNewUser = function() {
@@ -49,10 +50,11 @@ $(function() {
     appScope.showUser(editScope.user);
   };
 
-  listScope.click('#list-view .new-user', 'showNewUser()');
-  listScope.hide('!!users.length', '#list-view .not-found-message');
-  listScope.show('!!users.length', '#list-view table');
+  conditionsScope.input('conditions.name', '#conditions-view .name').change('search()');
+  conditionsScope.input('conditions.age', '#conditions-view .age').change('search()');
 
+  listScope.hide('!!users.length', '#list-view .not-found-message');
+  listScope.show('!!users.length', '#list-view .list');
   var template = $('#list-row-template').html();
   listScope.repeat('users', 'user', function (scope) {
     var $row = $(template);
@@ -64,7 +66,8 @@ $(function() {
     scope.click($row.find('.edit-user'), 'showEditUser(user)');
     scope.click($row.find('.delete-user'), 'destroyUser(user)');
     return $row;
-  }, 'id').appendTo('#list-view table');
+  }, 'id').appendTo('#list-view .list');
+  listScope.click('#list-view .new-user', 'showNewUser()');
 
   showScope.show('mode === MODE.SHOW', '#show-view');
   showScope.bind('user.id', '#show-view .id');
@@ -74,40 +77,16 @@ $(function() {
 
   newScope.show('mode === MODE.NEW', '#new-view');
   newScope.submit('#new-view form', 'create()');
-  newScope.watch('user.name', function(v) {if (v !== $('#new-view .name').val()) $('#new-view .name').val(v)});
-  $('#new-view .name').on('input change', function() {
-    newScope.user.name = $(this).val();
-    $.scope.apply();
-  });
-  newScope.watch('user.age', function(v) {if (v !== $('#new-view .age').val()) $('#new-view .age').val(v)});
-  $('#new-view .age').on('input change', function() {
-    newScope.user.age = $(this).val();
-    $.scope.apply();
-  });
-  newScope.watch('user.memo', function(v) {if (v !== $('#new-view .memo').val()) $('#new-view .memo').val(v)});
-  $('#new-view .memo').on('input change', function() {
-    newScope.user.memo = $(this).val();
-    $.scope.apply();
-  });
+  newScope.input('user.name', '#new-view .name');
+  newScope.input('user.age', '#new-view .age');
+  newScope.input('user.memo', 'input change');
 
   editScope.show('mode === MODE.EDIT', '#edit-view');
   editScope.submit('#edit-view form', 'update()');
   editScope.bind('user.id', '#edit-view .id');
-  editScope.watch('user.name', function(v) {if (v !== $('#edit-view .name').val()) $('#edit-view .name').val(v)});
-  $('#edit-view .name').on('input change', function() {
-    editScope.user.name = $(this).val();
-    $.scope.apply();
-  });
-  editScope.watch('user.age', function(v) {if (v !== $('#edit-view .age').val()) $('#edit-view .age').val(v)});
-  $('#edit-view .age').on('input change', function() {
-    editScope.user.age = $(this).val();
-    $.scope.apply();
-  });
-  editScope.watch('user.memo', function(v) {if (v !== $('#edit-view .memo').val()) $('#edit-view .memo').val(v)});
-  $('#edit-view .memo').on('input change', function() {
-    editScope.user.memo = $(this).val();
-    $.scope.apply();
-  });
+  editScope.input('user.name', '#edit-view .name');
+  editScope.input('user.age', '#edit-view .age');
+  editScope.input('user.memo', '#edit-view .memo');
 
   appScope.init();
   $.scope.apply();

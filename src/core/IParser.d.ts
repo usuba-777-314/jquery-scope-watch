@@ -15,5 +15,12 @@ declare module scope {
      * @return {*} parse result
      */
     (scope: Scope): any;
+
+    /**
+     * Set value to expression result.
+     * @param {Scope} scope
+     * @param {*} value
+     */
+    assign(scope: Scope, value: any);
   }
 }

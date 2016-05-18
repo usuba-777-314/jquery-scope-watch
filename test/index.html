@@ -8,11 +8,14 @@
 <body>
 <h1>Users (Test jquery-scope-watch.js)</h1>
 
-<div id="list-view">
-  <button class="new-user">New</button>
+<div id="conditions-view">
+  <label>Name: <input class="name" type="text"></label>
+  <label>Age: <input class="age" type="number"></label>
+</div>
 
+<div id="list-view">
   <p class="not-found-message">Users are not found.</p>
-  <table id="list" border="1">
+  <table class="list" border="1">
     <tbody>
       <tr>
         <th>Id</th>
@@ -35,6 +38,8 @@
       </script>
     </tbody>
   </table>
+
+  <button class="new-user">New</button>
 </div>
 
 <div id="show-view">
