@@ -1,6 +1,6 @@
 {
   "name": "jquery-scope-watch",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Watch the value, and to applied.",
   "main": "index.js",
   "scripts": {
