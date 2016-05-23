@@ -205,7 +205,9 @@ module scope {
      * @return {*}
      */
     private getSelectValue(): any {
-      return this.$select.find('option:selected').data(SelectWorker.OPTION_VALUE_KEY);
+      var value = this.$select.find('option:selected').data(SelectWorker.OPTION_VALUE_KEY);
+      if (value === undefined) value = this.$select.val();
+      return value;
     }
   }
 }

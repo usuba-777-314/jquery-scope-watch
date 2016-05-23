@@ -10,14 +10,24 @@ $(function() {
 
   appScope.init = function() {
     appScope.languages = Language.query();
+    appScope.refresh();
+  };
+
+  appScope.refresh = function() {
     appScope.mode = appScope.MODE.NONE;
-    conditionsScope.conditions = {};
+    conditionsScope.conditions = {languageId: 'all'};
     listScope.users = User.query();
   };
 
   appScope.search = function() {
     appScope.mode = appScope.MODE.NONE;
-    listScope.users = User.query(conditionsScope.conditions);
+    var conditions = {};
+    conditions.name = conditionsScope.conditions.name;
+    conditions.age = conditionsScope.conditions.age;
+    conditions.languageId = conditionsScope.conditions.languageId !== 'all'
+      ? conditionsScope.conditions.languageId
+      : undefined;
+    listScope.users = User.query(conditions);
   };
 
   appScope.showNewUser = function() {
