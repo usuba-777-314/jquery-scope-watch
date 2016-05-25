@@ -32,7 +32,7 @@ $(function() {
 
   appScope.showNewUser = function() {
     appScope.mode = appScope.MODE.NEW;
-    newScope.user = new User({name: 'Taro Yamada', age: '19'});
+    newScope.user = new User({name: 'Taro Yamada', age: 19});
   };
 
   appScope.showUser = function(user) {

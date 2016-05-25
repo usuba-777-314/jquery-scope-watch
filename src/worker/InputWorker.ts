@@ -91,8 +91,8 @@ module scope {
 
       var setter = Parser.generate(this.expression).assign;
       var inputCallback = (event: JQueryEventObject) => {
-        if (!this.isChanged(this.$input.val())) return;
-        setter(this.scope, this.$input.val());
+        if (!this.isChanged(this.getInputValue())) return;
+        setter(this.scope, this.getInputValue());
         this.callbacks.forEach((c: Function) => c(event));
         $.scope.apply();
       };
@@ -123,6 +123,18 @@ module scope {
       if (this.value === value) return false;
       this.value = value;
       return true;
+    }
+
+    /**
+     * Return input value.
+     * @method scope.InputWorker#getInputValue
+     * @return {*}
+     */
+    private getInputValue(): any {
+      var originalValue = this.$input.val();
+      if (this.$input.prop('type') === 'number') return Number(originalValue);
+      if (this.$input.prop('type') === 'range') return Number(originalValue);
+      return originalValue;
     }
   }
 }

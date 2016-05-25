@@ -200,7 +200,7 @@ module scope {
     }
 
     /**
-     * Return input value.
+     * Return select value.
      * @method scope.SelectWorker#getSelectValue
      * @return {*}
      */
