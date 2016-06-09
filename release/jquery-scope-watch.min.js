@@ -1,5 +1,5 @@
 /*!
- * jquery-scope-watch v0.1.2 - Watch the value, and to applied.
+ * jquery-scope-watch v0.1.3 - Watch the value, and to applied.
  * Copyright 2015 hironobu-igawa
  * license MIT
  */
