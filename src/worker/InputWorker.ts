@@ -132,7 +132,7 @@ module scope {
      */
     private getInputValue(): any {
       var originalValue = this.$input.val();
-      if (this.$input.prop('type') === 'number') return Number(originalValue);
+      if (this.$input.prop('type') === 'number') return originalValue ? Number(originalValue) : null;
       if (this.$input.prop('type') === 'range') return Number(originalValue);
       return originalValue;
     }

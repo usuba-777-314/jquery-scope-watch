@@ -728,7 +728,7 @@ var scope;
         InputWorker.prototype.getInputValue = function () {
             var originalValue = this.$input.val();
             if (this.$input.prop('type') === 'number')
-                return Number(originalValue);
+                return originalValue ? Number(originalValue) : null;
             if (this.$input.prop('type') === 'range')
                 return Number(originalValue);
             return originalValue;
